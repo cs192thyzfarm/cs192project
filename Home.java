@@ -3,17 +3,25 @@
  * and open the template in the editor.
  */
 
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.*;
+
 /**
  *
- * @author Ukz
+ * @author
  */
-public class Home extends javax.swing.JFrame {
+public class Home extends JFrame {
 
     /**
      * Creates new form Home
      */
     public Home() {
+    	status = 0;
         initComponents();
+    	remove(inventoryPanel);
+        validate();
+        repaint();
     }
 
     /**
@@ -25,368 +33,1530 @@ public class Home extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        jPanel2 = new javax.swing.JPanel();
-        jLabel1 = new javax.swing.JLabel();
-        jLabel2 = new javax.swing.JLabel();
-        jLabel3 = new javax.swing.JLabel();
-        jLabel4 = new javax.swing.JLabel();
-        jLabel5 = new javax.swing.JLabel();
-        jLabel6 = new javax.swing.JLabel();
-        jLabel7 = new javax.swing.JLabel();
-        jLabel8 = new javax.swing.JLabel();
-        submit = new javax.swing.JButton();
-        clr = new javax.swing.JButton();
-        butDate = new javax.swing.JTextField();
-        earNum = new javax.swing.JTextField();
-        totWeight1 = new javax.swing.JTextField();
-        buyer = new javax.swing.JTextField();
-        soldDate = new javax.swing.JTextField();
-        ppkg = new javax.swing.JTextField();
-        totWeight2 = new javax.swing.JTextField();
-        totAmt = new javax.swing.JTextField();
-        jLabel9 = new javax.swing.JLabel();
-        jLabel10 = new javax.swing.JLabel();
-        jLabel11 = new javax.swing.JLabel();
-        jLabel12 = new javax.swing.JLabel();
-        addButchText = new javax.swing.JLabel();
-        jPanel1 = new javax.swing.JPanel();
-        navButchText = new javax.swing.JLabel();
-        nav1 = new javax.swing.JButton();
-        nav2 = new javax.swing.JButton();
-        nav3 = new javax.swing.JButton();
-        nav4 = new javax.swing.JButton();
-        nav5 = new javax.swing.JButton();
-        nav6 = new javax.swing.JButton();
-        nav7 = new javax.swing.JButton();
-        nav8 = new javax.swing.JButton();
-        nav9 = new javax.swing.JButton();
-        nav10 = new javax.swing.JButton();
-        jLabel13 = new javax.swing.JLabel();
+		//GUI instantations leftside buttons
+		nav1 = new JButton();
+        nav2 = new JButton();
+        nav3 = new JButton();
+        nav4 = new JButton();
+        nav5 = new JButton();
+        nav6 = new JButton();
+        nav7 = new JButton();
+        nav8 = new JButton();
+        nav9 = new JButton();
+        nav10 = new JButton();
+		
+        //Essential GUI components (Home)
+        titleLabel = new JLabel();
+        navLabel = new JLabel();       
+        navButtonsPanel = new JPanel();
+        breedingPanel = new JPanel();
+        farrowingPanel = new JPanel();
+        mortalityPanel = new JPanel();
+        inventoryPanel = new JPanel();
+        finisherPanel = new JPanel();
+        butcheredPanel = new JPanel();
+        salariesPanel = new JPanel();
+        micellaneousPanel = new JPanel();
+        summaryPanel = new JPanel();
+        
+        //Breeding labels, text fields, scroll
+        breedingPanel = new JPanel();
+        breedingDateLabel = new JLabel();
+        breedingSowLabel = new JLabel();
+        breedingParityLabel = new JLabel();
+        breedingBoarLabel = new JLabel();
+        breedingFarrowingLabel = new JLabel();
+        breedingBreedingDateText = new JTextField();
+        breedingSowText = new JTextField();
+        breedingParityText = new JTextField();
+        breedingBoarText = new JTextField();
+        breedingFarrowingText = new JTextField();
+        breedingNotesScroll = new JScrollPane();
+        breedingNotesText = new JTextArea();
+        breedingNotesLabel = new JLabel();
+        
+        //Farrowing labels, texts fields, scroll
+        farrowingDateLabel = new JLabel();
+        farrowingSowLabel = new JLabel();
+        farrowingLiveLabel = new JLabel();
+        farrowingEarLabel = new JLabel();
+        farrowingStillLabel = new JLabel();
+        farrowingMummifiedLabel = new JLabel();
+        farrowingAbnormalLabel = new JLabel();
+        farrowingNotesLabel = new JLabel();       
+        farrowingDateText = new JTextField();
+        farrowingSowText = new JTextField();
+        farrowingLiveText = new JTextField();
+        farrowingEarText = new JTextField();
+        farrowingStillText = new JTextField();
+        farrowingMummifiedText = new JTextField();
+        farrowingAbnormalText = new JTextField();
+        farrowingNotesText = new JTextArea();
+        farrowingNotesScroll = new JScrollPane();
+        
+        //Mortality labels, text fields, scroll
+        mortalityDateLabel = new JLabel();
+        mortalityEarLabel = new JLabel();
+        mortalityBuildingLabel = new JLabel();
+        mortalityEmployeeLabel = new JLabel();
+        mortalityCauseLabel = new JLabel();
+        mortalityDateText = new JTextField();
+        mortalityEarText = new JTextField();
+        mortalityBuildingText = new JTextField();
+        mortalityEmployeeText = new JTextField();
+        mortalityCauseText = new JTextField();
+    
+        //Inventory labels and corresponding text fields
+        inventoryDateLabel = new JLabel();
+        inventoryReceiptLabel = new JLabel();
+        inventoryItemTypeLabel = new JLabel();
+        inventoryQuantityLabel = new JLabel();
+        inventoryAmountLabel = new JLabel();          
+        inventoryDateText = new JTextField();
+        inventoryReceiptText = new JTextField();
+        inventoryItemTypeText = new JTextField();
+        inventoryQuantityText = new JTextField(); 
+        inventoryAmountText = new JTextField();      
+        
+        //Finisher labels and corresponding text fields
+        finisherDateLabel = new JLabel();
+        finisherBuyerLabel = new JLabel();
+        finisherHeadsLabel = new JLabel();
+        finisherWeightLabel = new JLabel();
+        finisherKilosLabel = new JLabel();
+        finisherPriceLabel = new JLabel();
+        finisherAmountLabel = new JLabel();       
+        finisherDateText = new JTextField();
+        finisherBuyerText = new JTextField();
+        finisherHeadsText = new JTextField();
+        finisherWeightText = new JTextField();
+        finisherKilosText = new JTextField();    
+        finisherPriceText = new JTextField();   
+        finisherAmountText = new JTextField();      
+        
+        //Butchered labels and corresponding text fields
+        butcheredButcherLabel = new JLabel();
+        butcheredEarLabel = new JLabel();
+        butcheredWeight1Label = new JLabel();
+        butcheredBuyerLabel = new JLabel();
+        butcheredSoldLabel = new JLabel();
+        butcheredPriceLabel = new JLabel();
+        butcheredWeight2Label = new JLabel();
+        butcheredAmountLabel = new JLabel();
+        butcheredKg1Label = new JLabel();
+        butcheredPhp1Label = new JLabel();
+        butcheredKg2Label = new JLabel();
+        butcheredPhp2Label = new JLabel();
+        butcheredButcherText = new JTextField();
+        butcheredEarText = new JTextField();
+        butcheredWeight1Text = new JTextField();
+        butcheredBuyerText = new JTextField();
+        butcheredSoldText = new JTextField();
+        butcheredPriceText = new JTextField();
+        butcheredWeight2Text = new JTextField();
+        butcheredAmountText = new JTextField();   
+        
+        //Salaries labels and corresponding text fields
+        salariesDate1Label = new JLabel();
+        salariesDate2Label = new JLabel();
+        salariesEmployeeLabel = new JLabel();
+        salariesAmountLabel = new JLabel();
+        salariesDate1Text = new JTextField();
+        salariesDate2Text = new JTextField();
+        salariesEmployeeText = new JTextField();   
+        salariesAmountText = new JTextField();       
+        
+        //Micellaneous labels and corresponding text fields
+        micellaneousDateLabel = new JLabel();
+        micellaneousItemLabel = new JLabel();
+        micellaneousAmountLabel = new JLabel();
+        micellaneousNotesLabel = new JLabel();
+        micellaneousDateText = new JTextField();
+        micellaneousItemText = new JTextField();
+        micellaneousAmountText = new JTextField();
+        micellaneousPhpLabel = new JLabel();
+        micellaneousNotesScroll = new JScrollPane();
+        micellaneousNotesText = new JTextArea();
+        
+        //Summary labels and corresponding text fields
+        
 
-        jLabel1.setText("Butcher Date");
+        //Modifications on instantations
+        setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+        titleLabel.setBackground(new Color(51, 153, 255));
+        titleLabel.setFont(new Font("Verdana", 1, 24)); // NOI18N
+        titleLabel.setText("                            Home");
+        navLabel.setFont(new Font("Verdana", 0, 12)); // NOI18N
+        navLabel.setText("  Navigation");
 
-        jLabel2.setText("Ear#");
-
-        jLabel3.setText("Total Weight");
-
-        jLabel4.setText("Buyer");
-
-        jLabel5.setText("Sold Date");
-
-        jLabel6.setText("Price per kg");
-
-        jLabel7.setText("Total Weight");
-
-        jLabel8.setText("Total Amount");
-
-        submit.setText("Submit");
-
-        clr.setText("Clear Fields");
-
-        totWeight1.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                totWeight1ActionPerformed(evt);
-            }
-        });
-
-        buyer.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                buyerActionPerformed(evt);
-            }
-        });
-
-        totWeight2.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                totWeight2ActionPerformed(evt);
-            }
-        });
-
-        totAmt.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                totAmtActionPerformed(evt);
-            }
-        });
-
-        jLabel9.setText("kg");
-
-        jLabel10.setText("kg");
-
-        jLabel11.setText("Php");
-
-        jLabel12.setText("Php");
-
-        javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
-        jPanel2.setLayout(jPanel2Layout);
-        jPanel2Layout.setHorizontalGroup(
-            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel2Layout.createSequentialGroup()
-                .addGap(62, 62, 62)
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanel2Layout.createSequentialGroup()
-                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                            .addComponent(jLabel8, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(jLabel7, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(jLabel6, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(jLabel5, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(jLabel3, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(jLabel2, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(jLabel1, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                        .addGap(67, 67, 67))
-                    .addGroup(jPanel2Layout.createSequentialGroup()
-                        .addComponent(jLabel4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)))
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(totAmt, javax.swing.GroupLayout.DEFAULT_SIZE, 94, Short.MAX_VALUE)
-                    .addComponent(totWeight2)
-                    .addComponent(ppkg)
-                    .addComponent(soldDate)
-                    .addComponent(buyer)
-                    .addComponent(totWeight1)
-                    .addComponent(earNum)
-                    .addComponent(butDate)
-                    .addComponent(submit, javax.swing.GroupLayout.PREFERRED_SIZE, 88, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(clr)
-                    .addComponent(jLabel10)
-                    .addComponent(jLabel11)
-                    .addComponent(jLabel9)
-                    .addComponent(jLabel12))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-        );
-        jPanel2Layout.setVerticalGroup(
-            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel2Layout.createSequentialGroup()
-                .addGap(21, 21, 21)
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel1)
-                    .addComponent(butDate, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(18, 18, 18)
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel2)
-                    .addComponent(earNum, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(18, 18, 18)
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel3)
-                    .addComponent(totWeight1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel9))
-                .addGap(18, 18, 18)
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(buyer, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel4))
-                .addGap(18, 18, 18)
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel5)
-                    .addComponent(soldDate, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(18, 18, 18)
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel6)
-                    .addComponent(ppkg, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel11))
-                .addGap(20, 20, 20)
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel7)
-                    .addComponent(totWeight2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel10))
-                .addGap(18, 18, 18)
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel8)
-                    .addComponent(totAmt, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel12))
-                .addGap(29, 29, 29)
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(clr)
-                    .addComponent(submit))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-        );
-
-        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-
-        addButchText.setBackground(new java.awt.Color(51, 153, 255));
-        addButchText.setFont(new java.awt.Font("Verdana", 1, 24)); // NOI18N
-        addButchText.setText("                                       Home");
-
-        navButchText.setFont(new java.awt.Font("Verdana", 0, 12)); // NOI18N
-        navButchText.setText("  Navigation");
-
+        //Adds ActionListeners to left side buttons
         nav1.setText("Home");
-
+        nav1.addActionListener(new ActionListener() {
+        	public void actionPerformed(ActionEvent evt) {
+        		nav1ActionPerformed(evt); 		
+        	}
+        });
         nav2.setText("Add Breeding Item");
-
+        nav2.addActionListener(new ActionListener() {
+        	public void actionPerformed(ActionEvent evt) {
+        		nav2ActionPerformed(evt); 		
+        	}
+        });
         nav3.setText("Add Farrowing Item");
-
+        nav3.addActionListener(new ActionListener() {
+        	public void actionPerformed(ActionEvent evt) {
+        		nav3ActionPerformed(evt); 		
+        	}
+        });
         nav4.setText("Add Mortality Item");
-        nav4.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+        nav4.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
                 nav4ActionPerformed(evt);
             }
         });
-
         nav5.setText("Add Inventory Item");
-        nav5.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+        nav5.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
                 nav5ActionPerformed(evt);
             }
         });
-
         nav6.setText("Add Finisher Sales Item");
-        nav6.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+        nav6.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
                 nav6ActionPerformed(evt);
             }
         });
-
         nav7.setText("Add Butchered Sales Item");
-
+        nav7.addActionListener(new ActionListener() {
+        	public void actionPerformed(ActionEvent evt) {
+        		nav7ActionPerformed(evt); 		
+        	}
+        });
         nav8.setText("Add Salaries Expenses Item");
-        nav8.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+        nav8.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
                 nav8ActionPerformed(evt);
             }
         });
-
-        nav9.setText("Add Miscellaneous Item");
-        nav9.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+        nav9.setText("Add Miscellaneous Expense Item");
+        nav9.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
                 nav9ActionPerformed(evt);
             }
         });
-
         nav10.setText("Show Summary");
-
-        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
-        jPanel1.setLayout(jPanel1Layout);
-        jPanel1Layout.setHorizontalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel1Layout.createSequentialGroup()
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanel1Layout.createSequentialGroup()
+        nav10.addActionListener(new ActionListener() {
+        	public void actionPerformed(ActionEvent evt) {
+        		nav10ActionPerformed(evt); 		
+        	}
+        });
+        
+        //Adds ActionListeners to Submit and Clear Buttons of all Panels
+        breedingSubmitButton = new JButton();
+        breedingSubmitButton.addActionListener(new ActionListener() {
+        	public void actionPerformed(ActionEvent evt) {
+        		breedingSubmitActionPerformed(evt);
+        	}
+        });
+        breedingClearButton = new JButton();
+        breedingClearButton.addActionListener(new ActionListener() {
+        	public void actionPerformed(ActionEvent evt) {
+        		breedingClearActionPerformed(evt);
+        	}
+        });
+        farrowingSubmitButton = new JButton();
+        farrowingSubmitButton.addActionListener(new ActionListener() {
+        	public void actionPerformed(ActionEvent evt) {
+        		farrowingSubmitActionPerformed(evt);
+        	}
+        });
+        farrowingClearButton = new JButton();
+        farrowingClearButton.addActionListener(new ActionListener() {
+        	public void actionPerformed(ActionEvent evt) {
+        		farrowingClearActionPerformed(evt);
+        	}
+        });
+        mortalitySubmitButton = new JButton();
+        mortalitySubmitButton.addActionListener(new ActionListener() {
+        	public void actionPerformed(ActionEvent evt) {
+        		mortalitySubmitActionPerformed(evt);
+        	}
+        });
+        mortalityClearButton = new JButton();
+        mortalityClearButton.addActionListener(new ActionListener() {
+        	public void actionPerformed(ActionEvent evt) {
+        		mortalityClearActionPerformed(evt);
+        	}
+        });
+        inventorySubmitButton = new JButton();
+        inventorySubmitButton.addActionListener(new ActionListener() {
+        	public void actionPerformed(ActionEvent evt) {
+        		inventorySubmitActionPerformed(evt);
+        	}
+        });
+        inventoryClearButton = new JButton();
+        inventoryClearButton.addActionListener(new ActionListener() {
+        	public void actionPerformed(ActionEvent evt) {
+        		inventoryClearActionPerformed(evt);
+        	}
+        });
+        finisherSubmitButton = new JButton();
+        finisherSubmitButton.addActionListener(new ActionListener() {
+        	public void actionPerformed(ActionEvent evt) {
+        		finisherSubmitActionPerformed(evt);
+        	}
+        });
+        finisherClearButton = new JButton();
+        finisherClearButton.addActionListener(new ActionListener() {
+        	public void actionPerformed(ActionEvent evt) {
+        		finisherClearActionPerformed(evt);
+        	}
+        });
+        butcheredSubmitButton = new JButton();
+        butcheredSubmitButton.addActionListener(new ActionListener() {
+        	public void actionPerformed(ActionEvent evt) {
+        		butcheredSubmitActionPerformed(evt);
+        	}
+        });
+        butcheredClearButton = new JButton();
+        butcheredClearButton.addActionListener(new ActionListener() {
+        	public void actionPerformed(ActionEvent evt) {
+        		butcheredClearActionPerformed(evt);
+        	}
+        });
+        salariesSubmitButton = new JButton();
+        salariesSubmitButton.addActionListener(new ActionListener() {
+        	public void actionPerformed(ActionEvent evt) {
+        		salariesSubmitActionPerformed(evt);
+        	}
+        });
+        salariesClearButton = new JButton(); 
+        salariesClearButton.addActionListener(new ActionListener() {
+        	public void actionPerformed(ActionEvent evt) {
+        		salariesClearActionPerformed(evt);
+        	}
+        });
+        micellaneousSubmitButton = new JButton();
+        micellaneousSubmitButton.addActionListener(new ActionListener() {
+        	public void actionPerformed(ActionEvent evt) {
+        		micellaneousSubmitActionPerformed(evt);
+        	}
+        });
+        micellaneousClearButton = new JButton();
+        micellaneousClearButton.addActionListener(new ActionListener() {
+        	public void actionPerformed(ActionEvent evt) {
+        		micellaneousClearActionPerformed(evt);
+        	}
+        });
+        
+        //Layout for left side buttons
+        GroupLayout navButtonsPanelLayout = new GroupLayout(navButtonsPanel);
+        navButtonsPanel.setLayout(navButtonsPanelLayout);
+        navButtonsPanelLayout.setHorizontalGroup(
+            navButtonsPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+            .addGroup(navButtonsPanelLayout.createSequentialGroup()
+                .addGroup(navButtonsPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                    .addGroup(navButtonsPanelLayout.createSequentialGroup()
                         .addGap(62, 62, 62)
-                        .addComponent(navButchText, javax.swing.GroupLayout.PREFERRED_SIZE, 85, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addComponent(navLabel, GroupLayout.PREFERRED_SIZE, 85, GroupLayout.PREFERRED_SIZE))
+                    .addGroup(navButtonsPanelLayout.createSequentialGroup()
                         .addContainerGap()
-                        .addComponent(nav1, javax.swing.GroupLayout.DEFAULT_SIZE, 195, Short.MAX_VALUE))
-                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addComponent(nav1, GroupLayout.DEFAULT_SIZE, 195, Short.MAX_VALUE))
+                    .addGroup(navButtonsPanelLayout.createSequentialGroup()
                         .addContainerGap()
-                        .addComponent(nav2, javax.swing.GroupLayout.DEFAULT_SIZE, 195, Short.MAX_VALUE))
-                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addComponent(nav2, GroupLayout.DEFAULT_SIZE, 195, Short.MAX_VALUE))
+                    .addGroup(navButtonsPanelLayout.createSequentialGroup()
                         .addContainerGap()
-                        .addComponent(nav3, javax.swing.GroupLayout.DEFAULT_SIZE, 195, Short.MAX_VALUE))
-                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addComponent(nav3, GroupLayout.DEFAULT_SIZE, 195, Short.MAX_VALUE))
+                    .addGroup(navButtonsPanelLayout.createSequentialGroup()
                         .addContainerGap()
-                        .addComponent(nav4, javax.swing.GroupLayout.DEFAULT_SIZE, 195, Short.MAX_VALUE))
-                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addComponent(nav4, GroupLayout.DEFAULT_SIZE, 195, Short.MAX_VALUE))
+                    .addGroup(navButtonsPanelLayout.createSequentialGroup()
                         .addContainerGap()
-                        .addComponent(nav5, javax.swing.GroupLayout.DEFAULT_SIZE, 195, Short.MAX_VALUE))
-                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addComponent(nav5, GroupLayout.DEFAULT_SIZE, 195, Short.MAX_VALUE))
+                    .addGroup(navButtonsPanelLayout.createSequentialGroup()
                         .addContainerGap()
-                        .addComponent(nav6, javax.swing.GroupLayout.DEFAULT_SIZE, 195, Short.MAX_VALUE))
-                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addComponent(nav6, GroupLayout.DEFAULT_SIZE, 195, Short.MAX_VALUE))
+                    .addGroup(navButtonsPanelLayout.createSequentialGroup()
                         .addContainerGap()
-                        .addComponent(nav7, javax.swing.GroupLayout.DEFAULT_SIZE, 195, Short.MAX_VALUE))
-                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addComponent(nav7, GroupLayout.DEFAULT_SIZE, 195, Short.MAX_VALUE))
+                    .addGroup(navButtonsPanelLayout.createSequentialGroup()
                         .addContainerGap()
-                        .addComponent(nav8, javax.swing.GroupLayout.DEFAULT_SIZE, 195, Short.MAX_VALUE))
-                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addComponent(nav8, GroupLayout.DEFAULT_SIZE, 195, Short.MAX_VALUE))
+                    .addGroup(navButtonsPanelLayout.createSequentialGroup()
                         .addContainerGap()
-                        .addComponent(nav9, javax.swing.GroupLayout.DEFAULT_SIZE, 195, Short.MAX_VALUE))
-                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addComponent(nav9, GroupLayout.DEFAULT_SIZE, 195, Short.MAX_VALUE))
+                    .addGroup(navButtonsPanelLayout.createSequentialGroup()
                         .addContainerGap()
-                        .addComponent(nav10, javax.swing.GroupLayout.DEFAULT_SIZE, 195, Short.MAX_VALUE)))
+                        .addComponent(nav10, GroupLayout.DEFAULT_SIZE, 195, Short.MAX_VALUE)))
                 .addContainerGap())
         );
-        jPanel1Layout.setVerticalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel1Layout.createSequentialGroup()
-                .addComponent(navButchText, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+        navButtonsPanelLayout.setVerticalGroup(
+            navButtonsPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+            .addGroup(navButtonsPanelLayout.createSequentialGroup()
+                .addComponent(navLabel, GroupLayout.PREFERRED_SIZE, 28, GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(nav1)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(nav2)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(nav3)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(nav4)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(nav5)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(nav6)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(nav7)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(nav8)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(nav9)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(nav10)
-                .addContainerGap(54, Short.MAX_VALUE))
+                .addContainerGap(42, Short.MAX_VALUE))
+        );
+        
+        //Inventory Layout
+        inventoryDateLabel.setText("Date");
+        inventoryReceiptLabel.setText("Receipt#");
+        inventoryItemTypeLabel.setText("Item Type#");
+        inventoryQuantityLabel.setText("Quantity");
+        inventoryAmountLabel.setText("Amount");
+        inventorySubmitButton.setText("Submit");
+        inventoryClearButton.setText("Clear Fields");
+
+        GroupLayout inventoryPanelLayout = new GroupLayout(inventoryPanel);
+        inventoryPanel.setLayout(inventoryPanelLayout);
+        inventoryPanelLayout.setHorizontalGroup(
+            inventoryPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+            .addGroup(GroupLayout.Alignment.TRAILING, inventoryPanelLayout.createSequentialGroup()
+                .addGap(62, 62, 62)
+                .addGroup(inventoryPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                    .addGroup(inventoryPanelLayout.createSequentialGroup()
+                        .addGroup(inventoryPanelLayout.createParallelGroup(GroupLayout.Alignment.TRAILING, false)
+                            .addComponent(inventoryAmountLabel, GroupLayout.Alignment.LEADING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(inventoryItemTypeLabel, GroupLayout.Alignment.LEADING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(inventoryReceiptLabel, GroupLayout.Alignment.LEADING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(inventoryDateLabel, GroupLayout.Alignment.LEADING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addGap(67, 67, 67))
+                    .addGroup(inventoryPanelLayout.createSequentialGroup()
+                        .addComponent(inventoryQuantityLabel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)))
+                .addGroup(inventoryPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                    .addGroup(inventoryPanelLayout.createSequentialGroup()
+                        .addComponent(inventorySubmitButton, GroupLayout.PREFERRED_SIZE, 88, GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(inventoryClearButton))
+                    .addGroup(inventoryPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING, false)
+                        .addComponent(inventoryQuantityText, 0, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(inventoryAmountText, GroupLayout.DEFAULT_SIZE, 94, Short.MAX_VALUE)
+                        .addComponent(inventoryItemTypeText)
+                        .addComponent(inventoryReceiptText)
+                        .addComponent(inventoryDateText)))
+                .addGap(53, 53, 53))
+        );
+        inventoryPanelLayout.setVerticalGroup(
+            inventoryPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+            .addGroup(inventoryPanelLayout.createSequentialGroup()
+                .addGap(21, 21, 21)
+                .addGroup(inventoryPanelLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                    .addComponent(inventoryDateLabel)
+                    .addComponent(inventoryDateText, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+                .addGap(18, 18, 18)
+                .addGroup(inventoryPanelLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                    .addComponent(inventoryReceiptLabel)
+                    .addComponent(inventoryReceiptText, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+                .addGap(18, 18, 18)
+                .addGroup(inventoryPanelLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                    .addComponent(inventoryItemTypeLabel)
+                    .addComponent(inventoryItemTypeText, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+                .addGap(18, 18, 18)
+                .addGroup(inventoryPanelLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                    .addComponent(inventoryQuantityLabel)
+                    .addComponent(inventoryQuantityText, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+                .addGap(18, 18, 18)
+                .addGroup(inventoryPanelLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                    .addComponent(inventoryAmountLabel)
+                    .addComponent(inventoryAmountText, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+                .addGap(55, 55, 55)
+                .addGroup(inventoryPanelLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                    .addComponent(inventoryClearButton)
+                    .addComponent(inventorySubmitButton))
+                .addContainerGap(89, Short.MAX_VALUE))
         );
 
-        jLabel13.setText("Click a link at the left to navigate");
-
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
+        
+        GroupLayout layout = new GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(addButchText, javax.swing.GroupLayout.PREFERRED_SIZE, 703, javax.swing.GroupLayout.PREFERRED_SIZE)
+            layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+            .addComponent(titleLabel, GroupLayout.PREFERRED_SIZE, 703, GroupLayout.PREFERRED_SIZE)
             .addGroup(layout.createSequentialGroup()
-                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(168, 168, 168)
-                .addComponent(jLabel13))
+                .addComponent(navButtonsPanel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(inventoryPanel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            layout.createParallelGroup(GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addComponent(addButchText, javax.swing.GroupLayout.PREFERRED_SIZE, 43, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(153, 153, 153)
-                        .addComponent(jLabel13)
-                        .addGap(0, 0, Short.MAX_VALUE))))
+                .addComponent(titleLabel, GroupLayout.PREFERRED_SIZE, 43, GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                    .addComponent(navButtonsPanel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(inventoryPanel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap())
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
+    
+    /**
+     * Initializes the components of the breedingPanel
+     */
+    private void breedingComponents() {
+        breedingDateLabel.setText("Breeding Date");
+        breedingSowLabel.setText("Sow#");
+        breedingParityLabel.setText("Parity");
+        breedingBoarLabel.setText("Boar#");
+        breedingFarrowingLabel.setText("Farrowing Date");
+        breedingSubmitButton.setText("Submit");
+        breedingClearButton.setText("Clear Fields");
+        breedingNotesText.setColumns(20);
+        breedingNotesText.setRows(5);
+        breedingNotesScroll.setViewportView(breedingNotesText);
+        breedingNotesLabel.setText("Notes");
 
-    private void nav4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_nav4ActionPerformed
-// TODO add your handling code here:
-    }//GEN-LAST:event_nav4ActionPerformed
+        GroupLayout breedingPanelLayout = new GroupLayout(breedingPanel);
+        breedingPanel.setLayout(breedingPanelLayout);
+        breedingPanelLayout.setHorizontalGroup(
+            breedingPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+            .addGroup(breedingPanelLayout.createSequentialGroup()
+                .addGap(62, 62, 62)
+                .addGroup(breedingPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                    .addGroup(breedingPanelLayout.createSequentialGroup()
+                        .addGroup(breedingPanelLayout.createParallelGroup(GroupLayout.Alignment.TRAILING, false)
+                            .addComponent(breedingFarrowingLabel, GroupLayout.Alignment.LEADING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(breedingParityLabel, GroupLayout.Alignment.LEADING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(breedingSowLabel, GroupLayout.Alignment.LEADING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(breedingDateLabel, GroupLayout.Alignment.LEADING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addGap(67, 67, 67))
+                    .addGroup(breedingPanelLayout.createSequentialGroup()
+                        .addComponent(breedingBoarLabel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED))
+                    .addGroup(breedingPanelLayout.createSequentialGroup()
+                        .addComponent(breedingNotesLabel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)))
+                .addGroup(breedingPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                    .addComponent(breedingNotesScroll, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                    .addGroup(breedingPanelLayout.createSequentialGroup()
+                        .addGroup(breedingPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING, false)
+                            .addComponent(breedingFarrowingText, GroupLayout.DEFAULT_SIZE, 94, Short.MAX_VALUE)
+                            .addComponent(breedingBoarText)
+                            .addComponent(breedingParityText)
+                            .addComponent(breedingSowText)
+                            .addComponent(breedingBreedingDateText)
+                            .addComponent(breedingSubmitButton, GroupLayout.PREFERRED_SIZE, 88, GroupLayout.PREFERRED_SIZE))
+                        .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(breedingClearButton)))
+                .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+        breedingPanelLayout.setVerticalGroup(
+            breedingPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+            .addGroup(breedingPanelLayout.createSequentialGroup()
+                .addGap(21, 21, 21)
+                .addGroup(breedingPanelLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                    .addComponent(breedingDateLabel)
+                    .addComponent(breedingBreedingDateText, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+                .addGap(18, 18, 18)
+                .addGroup(breedingPanelLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                    .addComponent(breedingSowLabel)
+                    .addComponent(breedingSowText, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+                .addGap(18, 18, 18)
+                .addGroup(breedingPanelLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                    .addComponent(breedingParityLabel)
+                    .addComponent(breedingParityText, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+                .addGap(18, 18, 18)
+                .addGroup(breedingPanelLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                    .addComponent(breedingBoarText, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                    .addComponent(breedingBoarLabel))
+                .addGap(18, 18, 18)
+                .addGroup(breedingPanelLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                    .addComponent(breedingFarrowingLabel)
+                    .addComponent(breedingFarrowingText, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(breedingPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                    .addComponent(breedingNotesLabel)
+                    .addComponent(breedingNotesScroll, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+                .addGap(32, 32, 32)
+                .addGroup(breedingPanelLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                    .addComponent(breedingClearButton)
+                    .addComponent(breedingSubmitButton))
+                .addContainerGap(17, Short.MAX_VALUE))
+        ); 
+    	
+    	
+        GroupLayout layout = new GroupLayout(getContentPane());
+        getContentPane().setLayout(layout);
+        layout.setHorizontalGroup(
+            layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+            .addComponent(titleLabel, GroupLayout.PREFERRED_SIZE, 703, GroupLayout.PREFERRED_SIZE)
+            .addGroup(layout.createSequentialGroup()
+                .addComponent(navButtonsPanel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(breedingPanel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+        layout.setVerticalGroup(
+            layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+            .addGroup(layout.createSequentialGroup()
+                .addComponent(titleLabel, GroupLayout.PREFERRED_SIZE, 43, GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                    .addComponent(navButtonsPanel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(breedingPanel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+        );
+        pack();
+    }
+    
+    /**
+     * Initializes the components of the farrowingPanel
+     */
+    private void farrowingComponents() {
+    	farrowingDateLabel.setText("Date Farrowed");
+        farrowingSowLabel.setText("Sow#");
+        farrowingLiveLabel.setText("Live born#");
+        farrowingEarLabel.setText("Ear# Assigned");
+        farrowingStillLabel.setText("Stillborn#");
+        farrowingMummifiedLabel.setText("Mummified#");
+        farrowingAbnormalLabel.setText("Abnormal#");
+        farrowingSubmitButton.setText("Submit");
+        farrowingClearButton.setText("Clear Fields");
+        farrowingNotesText.setColumns(20);
+        farrowingNotesText.setRows(5);
+        farrowingNotesScroll.setViewportView(farrowingNotesText);
+        farrowingNotesLabel.setText("Notes");
 
-    private void nav5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_nav5ActionPerformed
-// TODO add your handling code here:
-    }//GEN-LAST:event_nav5ActionPerformed
+        GroupLayout farrowingPanelLayout = new GroupLayout(farrowingPanel);
+        farrowingPanel.setLayout(farrowingPanelLayout);
+        farrowingPanelLayout.setHorizontalGroup(
+            farrowingPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+            .addGroup(farrowingPanelLayout.createSequentialGroup()
+                .addGap(62, 62, 62)
+                .addGroup(farrowingPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                    .addGroup(farrowingPanelLayout.createSequentialGroup()
+                        .addGroup(farrowingPanelLayout.createParallelGroup(GroupLayout.Alignment.TRAILING, false)
+                            .addComponent(farrowingMummifiedLabel, GroupLayout.Alignment.LEADING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(farrowingStillLabel, GroupLayout.Alignment.LEADING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(farrowingLiveLabel, GroupLayout.Alignment.LEADING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(farrowingSowLabel, GroupLayout.Alignment.LEADING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(farrowingDateLabel, GroupLayout.Alignment.LEADING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(farrowingNotesLabel, GroupLayout.Alignment.LEADING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addGroup(farrowingPanelLayout.createSequentialGroup()
+                        .addGroup(farrowingPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                            .addComponent(farrowingEarLabel, GroupLayout.Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addGroup(farrowingPanelLayout.createSequentialGroup()
+                                .addComponent(farrowingAbnormalLabel, GroupLayout.PREFERRED_SIZE, 72, GroupLayout.PREFERRED_SIZE)
+                                .addGap(0, 0, Short.MAX_VALUE)))
+                        .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)))
+                .addGroup(farrowingPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                    .addGroup(farrowingPanelLayout.createSequentialGroup()
+                        .addGroup(farrowingPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING, false)
+                            .addComponent(farrowingAbnormalText)
+                            .addComponent(farrowingMummifiedText)
+                            .addComponent(farrowingStillText)
+                            .addComponent(farrowingEarText)
+                            .addComponent(farrowingLiveText)
+                            .addComponent(farrowingSowText)
+                            .addComponent(farrowingDateText)
+                            .addComponent(farrowingSubmitButton, GroupLayout.PREFERRED_SIZE, 88, GroupLayout.PREFERRED_SIZE))
+                        .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(farrowingClearButton))
+                    .addComponent(farrowingNotesScroll, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+                .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+        farrowingPanelLayout.setVerticalGroup(
+            farrowingPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+            .addGroup(farrowingPanelLayout.createSequentialGroup()
+                .addGap(21, 21, 21)
+                .addGroup(farrowingPanelLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                    .addComponent(farrowingDateLabel)
+                    .addComponent(farrowingDateText, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(farrowingPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                    .addComponent(farrowingSowText, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                    .addComponent(farrowingSowLabel))
+                .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(farrowingPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                    .addComponent(farrowingLiveText, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                    .addComponent(farrowingLiveLabel))
+                .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(farrowingPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                    .addComponent(farrowingEarText, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                    .addComponent(farrowingEarLabel))
+                .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(farrowingPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                    .addComponent(farrowingStillText, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                    .addComponent(farrowingStillLabel))
+                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(farrowingPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                    .addComponent(farrowingMummifiedLabel)
+                    .addComponent(farrowingMummifiedText, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(farrowingPanelLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                    .addComponent(farrowingAbnormalText, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                    .addComponent(farrowingAbnormalLabel))
+                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(farrowingPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                    .addGroup(farrowingPanelLayout.createSequentialGroup()
+                        .addComponent(farrowingNotesScroll, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                        .addGap(18, 18, 18)
+                        .addGroup(farrowingPanelLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                            .addComponent(farrowingClearButton)
+                            .addComponent(farrowingSubmitButton)))
+                    .addGroup(farrowingPanelLayout.createSequentialGroup()
+                        .addGap(40, 40, 40)
+                        .addComponent(farrowingNotesLabel)))
+                .addContainerGap(17, Short.MAX_VALUE))
+        );
+        
+        GroupLayout layout = new GroupLayout(getContentPane());
+        getContentPane().setLayout(layout);
+        layout.setHorizontalGroup(
+            layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+            .addComponent(titleLabel, GroupLayout.PREFERRED_SIZE, 703, GroupLayout.PREFERRED_SIZE)
+            .addGroup(layout.createSequentialGroup()
+                .addComponent(navButtonsPanel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                .addGap(28, 28, 28)
+                .addComponent(farrowingPanel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+        layout.setVerticalGroup(
+            layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+            .addGroup(layout.createSequentialGroup()
+                .addComponent(titleLabel, GroupLayout.PREFERRED_SIZE, 43, GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                    .addComponent(farrowingPanel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(navButtonsPanel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+        );
+        pack();
+    }
+    
+    /**
+     * Initializes the components of the mortalityPanel
+     */
+    private void mortalityComponents() {
+    	mortalityDateLabel.setText("Date");
+        mortalityEarLabel.setText("Ear#");
+        mortalityBuildingLabel.setText("Building#");
+        mortalityEmployeeLabel.setText("Employee-in-charge");
+        mortalityCauseLabel.setText("Cause of Death");
+        mortalitySubmitButton.setText("Submit");
+        mortalityClearButton.setText("Clear Fields");
 
-    private void nav6ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_nav6ActionPerformed
-// TODO add your handling code here:
-    }//GEN-LAST:event_nav6ActionPerformed
+        GroupLayout mortalityPanelLayout = new GroupLayout(mortalityPanel);
+        mortalityPanel.setLayout(mortalityPanelLayout);
+        mortalityPanelLayout.setHorizontalGroup(
+            mortalityPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+            .addGroup(GroupLayout.Alignment.TRAILING, mortalityPanelLayout.createSequentialGroup()
+                .addGap(62, 62, 62)
+                .addGroup(mortalityPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                    .addGroup(mortalityPanelLayout.createSequentialGroup()
+                        .addGroup(mortalityPanelLayout.createParallelGroup(GroupLayout.Alignment.TRAILING, false)
+                            .addComponent(mortalityCauseLabel, GroupLayout.Alignment.LEADING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(mortalityBuildingLabel, GroupLayout.Alignment.LEADING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(mortalityEarLabel, GroupLayout.Alignment.LEADING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(mortalityDateLabel, GroupLayout.Alignment.LEADING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addGap(67, 67, 67))
+                    .addGroup(mortalityPanelLayout.createSequentialGroup()
+                        .addComponent(mortalityEmployeeLabel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)))
+                .addGroup(mortalityPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                    .addGroup(mortalityPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING, false)
+                        .addComponent(mortalityCauseText, GroupLayout.DEFAULT_SIZE, 94, Short.MAX_VALUE)
+                        .addComponent(mortalityEmployeeText)
+                        .addComponent(mortalityBuildingText)
+                        .addComponent(mortalityEarText)
+                        .addComponent(mortalityDateText))
+                    .addGroup(mortalityPanelLayout.createSequentialGroup()
+                        .addComponent(mortalitySubmitButton, GroupLayout.PREFERRED_SIZE, 88, GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(mortalityClearButton)))
+                .addGap(53, 53, 53))
+        );
+        mortalityPanelLayout.setVerticalGroup(
+            mortalityPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+            .addGroup(mortalityPanelLayout.createSequentialGroup()
+                .addGap(21, 21, 21)
+                .addGroup(mortalityPanelLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                    .addComponent(mortalityDateLabel)
+                    .addComponent(mortalityDateText, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+                .addGap(18, 18, 18)
+                .addGroup(mortalityPanelLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                    .addComponent(mortalityEarLabel)
+                    .addComponent(mortalityEarText, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+                .addGap(18, 18, 18)
+                .addGroup(mortalityPanelLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                    .addComponent(mortalityBuildingLabel)
+                    .addComponent(mortalityBuildingText, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+                .addGap(18, 18, 18)
+                .addGroup(mortalityPanelLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                    .addComponent(mortalityEmployeeText, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                    .addComponent(mortalityEmployeeLabel))
+                .addGap(18, 18, 18)
+                .addGroup(mortalityPanelLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                    .addComponent(mortalityCauseLabel)
+                    .addComponent(mortalityCauseText, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+                .addGap(55, 55, 55)
+                .addGroup(mortalityPanelLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                    .addComponent(mortalityClearButton)
+                    .addComponent(mortalitySubmitButton))
+                .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
 
-    private void nav8ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_nav8ActionPerformed
-// TODO add your handling code here:
-    }//GEN-LAST:event_nav8ActionPerformed
+        GroupLayout layout = new GroupLayout(getContentPane());
+        getContentPane().setLayout(layout);
+        layout.setHorizontalGroup(
+            layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+            .addComponent(titleLabel, GroupLayout.PREFERRED_SIZE, 703, GroupLayout.PREFERRED_SIZE)
+            .addGroup(layout.createSequentialGroup()
+                .addComponent(navButtonsPanel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(mortalityPanel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+        layout.setVerticalGroup(
+            layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+            .addGroup(layout.createSequentialGroup()
+                .addComponent(titleLabel, GroupLayout.PREFERRED_SIZE, 43, GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                    .addComponent(mortalityPanel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(navButtonsPanel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+        );
 
-    private void nav9ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_nav9ActionPerformed
-// TODO add your handling code here:
-    }//GEN-LAST:event_nav9ActionPerformed
+        pack();
+    }
+    
+    /**
+     * Initializes the components of the finisherPanel
+     */
+    private void finisherComponents() {
+    	finisherDateLabel.setText("Date");
+        finisherBuyerLabel.setText("Buyer");
+        finisherHeadsLabel.setText("# of heads");
+        finisherWeightLabel.setText("Total Weight");
+        finisherKilosLabel.setText("Kilos less");
+        finisherPriceLabel.setText("Price per Kg");
+        finisherAmountLabel.setText("Total Amount");
+        finisherSubmitButton.setText("Submit");
+        finisherClearButton.setText("Clear Fields");
 
-    private void totWeight1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_totWeight1ActionPerformed
-// TODO add your handling code here:
-    }//GEN-LAST:event_totWeight1ActionPerformed
+        GroupLayout finisherPanelLayout = new GroupLayout(finisherPanel);
+        finisherPanel.setLayout(finisherPanelLayout);
+        finisherPanelLayout.setHorizontalGroup(
+            finisherPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+            .addGroup(finisherPanelLayout.createSequentialGroup()
+                .addGap(62, 62, 62)
+                .addGroup(finisherPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                    .addComponent(finisherWeightLabel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addGroup(finisherPanelLayout.createSequentialGroup()
+                        .addGroup(finisherPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                            .addGroup(finisherPanelLayout.createParallelGroup(GroupLayout.Alignment.TRAILING, false)
+                                .addComponent(finisherKilosLabel, GroupLayout.Alignment.LEADING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(finisherHeadsLabel, GroupLayout.Alignment.LEADING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(finisherBuyerLabel, GroupLayout.Alignment.LEADING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(finisherDateLabel, GroupLayout.Alignment.LEADING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(finisherPriceLabel, GroupLayout.Alignment.LEADING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                            .addComponent(finisherAmountLabel, GroupLayout.PREFERRED_SIZE, 158, GroupLayout.PREFERRED_SIZE))
+                        .addGap(0, 0, Short.MAX_VALUE)))
+                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(finisherPanelLayout.createParallelGroup(GroupLayout.Alignment.TRAILING, false)
+                    .addComponent(finisherAmountText)
+                    .addComponent(finisherPriceText)
+                    .addComponent(finisherKilosText, GroupLayout.Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 94, Short.MAX_VALUE)
+                    .addComponent(finisherWeightText, GroupLayout.Alignment.LEADING)
+                    .addComponent(finisherHeadsText, GroupLayout.Alignment.LEADING)
+                    .addComponent(finisherBuyerText, GroupLayout.Alignment.LEADING)
+                    .addComponent(finisherDateText, GroupLayout.Alignment.LEADING)
+                    .addComponent(finisherSubmitButton, GroupLayout.Alignment.LEADING, GroupLayout.PREFERRED_SIZE, 88, GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(finisherClearButton)
+                .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+        finisherPanelLayout.setVerticalGroup(
+            finisherPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+            .addGroup(finisherPanelLayout.createSequentialGroup()
+                .addGap(21, 21, 21)
+                .addGroup(finisherPanelLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                    .addComponent(finisherDateLabel)
+                    .addComponent(finisherDateText, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(finisherPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                    .addComponent(finisherBuyerText, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                    .addComponent(finisherBuyerLabel))
+                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(finisherPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                    .addComponent(finisherHeadsText, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                    .addComponent(finisherHeadsLabel))
+                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(finisherPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                    .addComponent(finisherWeightText, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                    .addComponent(finisherWeightLabel))
+                .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(finisherPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                    .addComponent(finisherKilosText, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                    .addComponent(finisherKilosLabel))
+                .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(finisherPanelLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                    .addComponent(finisherPriceLabel)
+                    .addComponent(finisherPriceText, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(finisherPanelLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                    .addComponent(finisherAmountLabel)
+                    .addComponent(finisherAmountText, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+                .addGap(91, 91, 91)
+                .addGroup(finisherPanelLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                    .addComponent(finisherClearButton)
+                    .addComponent(finisherSubmitButton))
+                .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
 
-    private void buyerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buyerActionPerformed
-// TODO add your handling code here:
-    }//GEN-LAST:event_buyerActionPerformed
+        GroupLayout layout = new GroupLayout(getContentPane());
+        getContentPane().setLayout(layout);
+        layout.setHorizontalGroup(
+            layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+            .addComponent(titleLabel, GroupLayout.PREFERRED_SIZE, 703, GroupLayout.PREFERRED_SIZE)
+            .addGroup(layout.createSequentialGroup()
+                .addComponent(navButtonsPanel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(finisherPanel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+        layout.setVerticalGroup(
+            layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+            .addGroup(layout.createSequentialGroup()
+                .addComponent(titleLabel, GroupLayout.PREFERRED_SIZE, 43, GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                    .addComponent(navButtonsPanel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(finisherPanel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+        );
 
-    private void totWeight2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_totWeight2ActionPerformed
-// TODO add your handling code here:
-    }//GEN-LAST:event_totWeight2ActionPerformed
+        pack();
+    }
+    
+    /**
+     * Initializes the components of the butcheredPanel
+     */
+    private void butcheredComponents() {
+    	butcheredButcherLabel.setText("Butcher Date");
+        butcheredEarLabel.setText("Ear#");
+        butcheredWeight1Label.setText("Total Weight");
+        butcheredBuyerLabel.setText("Buyer");
+        butcheredSoldLabel.setText("Sold Date");
+        butcheredPriceLabel.setText("Price per kg");
+        butcheredWeight2Label.setText("Total Weight");
+        butcheredAmountLabel.setText("Total Amount");
+        butcheredSubmitButton.setText("Submit");
+        butcheredClearButton.setText("Clear Fields");
+        butcheredKg1Label.setText("kg");
+        butcheredPhp1Label.setText("kg");
+        butcheredKg2Label.setText("Php");
+        butcheredPhp2Label.setText("Php");
 
-    private void totAmtActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_totAmtActionPerformed
-// TODO add your handling code here:
-    }//GEN-LAST:event_totAmtActionPerformed
+        GroupLayout butcheredPanelLayout = new GroupLayout(butcheredPanel);
+        butcheredPanel.setLayout(butcheredPanelLayout);
+        butcheredPanelLayout.setHorizontalGroup(
+            butcheredPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+            .addGroup(butcheredPanelLayout.createSequentialGroup()
+                .addGap(62, 62, 62)
+                .addGroup(butcheredPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                    .addGroup(butcheredPanelLayout.createSequentialGroup()
+                        .addGroup(butcheredPanelLayout.createParallelGroup(GroupLayout.Alignment.TRAILING, false)
+                            .addComponent(butcheredAmountLabel, GroupLayout.Alignment.LEADING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(butcheredWeight2Label, GroupLayout.Alignment.LEADING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(butcheredPriceLabel, GroupLayout.Alignment.LEADING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(butcheredSoldLabel, GroupLayout.Alignment.LEADING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(butcheredWeight1Label, GroupLayout.Alignment.LEADING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(butcheredEarLabel, GroupLayout.Alignment.LEADING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(butcheredButcherLabel, GroupLayout.Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 64, Short.MAX_VALUE))
+                        .addGap(67, 67, 67))
+                    .addGroup(butcheredPanelLayout.createSequentialGroup()
+                        .addComponent(butcheredBuyerLabel, GroupLayout.DEFAULT_SIZE, 130, Short.MAX_VALUE)
+                        .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)))
+                .addGroup(butcheredPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING, false)
+                    .addComponent(butcheredAmountText)
+                    .addComponent(butcheredWeight2Text)
+                    .addComponent(butcheredPriceText)
+                    .addComponent(butcheredSoldText)
+                    .addComponent(butcheredBuyerText)
+                    .addComponent(butcheredWeight1Text)
+                    .addComponent(butcheredEarText)
+                    .addComponent(butcheredButcherText)
+                    .addGroup(butcheredPanelLayout.createSequentialGroup()
+                        .addComponent(butcheredSubmitButton, GroupLayout.PREFERRED_SIZE, 88, GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)))
+                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(butcheredPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                    .addComponent(butcheredClearButton)
+                    .addComponent(butcheredPhp1Label)
+                    .addComponent(butcheredKg2Label)
+                    .addComponent(butcheredKg1Label)
+                    .addComponent(butcheredPhp2Label))
+                .addContainerGap(89, Short.MAX_VALUE))
+        );
+        butcheredPanelLayout.setVerticalGroup(
+            butcheredPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+            .addGroup(butcheredPanelLayout.createSequentialGroup()
+                .addGap(21, 21, 21)
+                .addGroup(butcheredPanelLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                    .addComponent(butcheredButcherLabel)
+                    .addComponent(butcheredButcherText, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+                .addGap(18, 18, 18)
+                .addGroup(butcheredPanelLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                    .addComponent(butcheredEarLabel)
+                    .addComponent(butcheredEarText, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+                .addGap(18, 18, 18)
+                .addGroup(butcheredPanelLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                    .addComponent(butcheredWeight1Label)
+                    .addComponent(butcheredWeight1Text, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                    .addComponent(butcheredKg1Label))
+                .addGap(18, 18, 18)
+                .addGroup(butcheredPanelLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                    .addComponent(butcheredBuyerText, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                    .addComponent(butcheredBuyerLabel))
+                .addGap(18, 18, 18)
+                .addGroup(butcheredPanelLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                    .addComponent(butcheredSoldLabel)
+                    .addComponent(butcheredSoldText, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+                .addGap(18, 18, 18)
+                .addGroup(butcheredPanelLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                    .addComponent(butcheredPriceLabel)
+                    .addComponent(butcheredPriceText, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                    .addComponent(butcheredKg2Label))
+                .addGap(20, 20, 20)
+                .addGroup(butcheredPanelLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                    .addComponent(butcheredWeight2Label)
+                    .addComponent(butcheredWeight2Text, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                    .addComponent(butcheredPhp1Label))
+                .addGap(18, 18, 18)
+                .addGroup(butcheredPanelLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                    .addComponent(butcheredAmountLabel)
+                    .addComponent(butcheredAmountText, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                    .addComponent(butcheredPhp2Label))
+                .addGap(29, 29, 29)
+                .addGroup(butcheredPanelLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                    .addComponent(butcheredClearButton)
+                    .addComponent(butcheredSubmitButton))
+                .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
 
+        GroupLayout layout = new GroupLayout(getContentPane());
+        getContentPane().setLayout(layout);
+        layout.setHorizontalGroup(
+            layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+            .addComponent(titleLabel, GroupLayout.PREFERRED_SIZE, 703, GroupLayout.PREFERRED_SIZE)
+            .addGroup(layout.createSequentialGroup()
+                .addComponent(navButtonsPanel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(butcheredPanel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+        layout.setVerticalGroup(
+            layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+            .addGroup(layout.createSequentialGroup()
+                .addComponent(titleLabel, GroupLayout.PREFERRED_SIZE, 43, GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                    .addComponent(butcheredPanel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(navButtonsPanel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+        );
+
+        pack();
+    }
+    
+    /**
+     * Initializes the components of the salariesPanel
+     */
+    private void salariesComponents() {
+    	 salariesDate1Label.setText("Start Date");
+    	 salariesDate2Label.setText("End Date");
+         salariesEmployeeLabel.setText("Employee");
+         salariesSubmitButton.setText("Submit");
+         salariesClearButton.setText("Clear Fields");
+         salariesAmountLabel.setText("Amount");
+
+         GroupLayout salariesPanelLayout = new GroupLayout(salariesPanel);
+         salariesPanel.setLayout(salariesPanelLayout);    
+         salariesPanelLayout.setHorizontalGroup(
+             salariesPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+             .addGroup(salariesPanelLayout.createSequentialGroup()
+                 .addGap(62, 62, 62)
+                 .addGroup(salariesPanelLayout.createParallelGroup(GroupLayout.Alignment.TRAILING, false)
+                     .addComponent(salariesAmountLabel, GroupLayout.Alignment.LEADING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                     .addComponent(salariesEmployeeLabel, GroupLayout.Alignment.LEADING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                     .addComponent(salariesDate2Label, GroupLayout.Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 64, Short.MAX_VALUE)
+                     .addComponent(salariesDate1Label, GroupLayout.Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 64, Short.MAX_VALUE))
+                 .addGap(67, 67, 67)
+                 .addGroup(salariesPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                     .addGroup(salariesPanelLayout.createSequentialGroup()
+                         .addComponent(salariesSubmitButton, GroupLayout.PREFERRED_SIZE, 88, GroupLayout.PREFERRED_SIZE)
+                         .addGap(6, 6, 6)
+                         .addComponent(salariesClearButton))
+                     .addGroup(salariesPanelLayout.createParallelGroup(GroupLayout.Alignment.TRAILING, false)
+                         .addComponent(salariesAmountText, GroupLayout.Alignment.LEADING)
+                         .addComponent(salariesEmployeeText, GroupLayout.Alignment.LEADING)
+                         .addComponent(salariesDate2Text, GroupLayout.Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 104, Short.MAX_VALUE)
+                         .addComponent(salariesDate1Text, GroupLayout.Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 104, Short.MAX_VALUE)))
+                 .addContainerGap(110, Short.MAX_VALUE))
+         );    
+         salariesPanelLayout.setVerticalGroup(
+             salariesPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+             .addGroup(salariesPanelLayout.createSequentialGroup()
+                 .addGap(21, 21, 21)
+                 .addGroup(salariesPanelLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                     .addComponent(salariesDate1Label)
+                     .addComponent(salariesDate1Text, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+                 .addGap(18, 18, 18)
+                 .addGroup(salariesPanelLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                	 .addComponent(salariesDate2Label)
+                     .addComponent(salariesDate2Text, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+                 .addGap(18, 18, 18)
+                 .addGroup(salariesPanelLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                     .addComponent(salariesEmployeeLabel)
+                     .addComponent(salariesEmployeeText, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+                 .addGap(18, 18, 18)
+                 .addGroup(salariesPanelLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                     .addComponent(salariesAmountLabel)
+                     .addComponent(salariesAmountText, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+                 .addGap(203, 203, 203)
+                 .addGroup(salariesPanelLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                     .addComponent(salariesClearButton)
+                     .addComponent(salariesSubmitButton))
+                 .addContainerGap(34, Short.MAX_VALUE))
+         );
+
+         GroupLayout layout = new GroupLayout(getContentPane());
+         getContentPane().setLayout(layout);
+         layout.setHorizontalGroup(
+             layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+             .addComponent(titleLabel, GroupLayout.DEFAULT_SIZE, 705, Short.MAX_VALUE)
+             .addGroup(layout.createSequentialGroup()
+                 .addComponent(navButtonsPanel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                 .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                 .addComponent(salariesPanel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+         );
+         layout.setVerticalGroup(
+             layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+             .addGroup(layout.createSequentialGroup()
+                 .addComponent(titleLabel, GroupLayout.PREFERRED_SIZE, 43, GroupLayout.PREFERRED_SIZE)
+                 .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                 .addGroup(layout.createParallelGroup(GroupLayout.Alignment.TRAILING)
+                     .addGroup(layout.createSequentialGroup()
+                         .addComponent(navButtonsPanel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                         .addContainerGap())
+                     .addComponent(salariesPanel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+         );
+
+         pack();
+    }
+    
+    /**
+     * Initializes the components of the micellaneousPanel
+     */
+    private void micellaneousComponents() {
+    	micellaneousDateLabel.setText("Date");
+        micellaneousItemLabel.setText("Item");
+        micellaneousAmountLabel.setText("Amount");
+        micellaneousNotesLabel.setText("Notes");
+        micellaneousSubmitButton.setText("Submit");
+        micellaneousClearButton.setText("Clear Fields");
+        micellaneousPhpLabel.setText("Php");
+        micellaneousNotesText.setColumns(20);
+        micellaneousNotesText.setRows(5);
+        micellaneousNotesScroll.setViewportView(micellaneousNotesText);
+
+        GroupLayout micellaneousPanelLayout = new GroupLayout(micellaneousPanel);
+        micellaneousPanel.setLayout(micellaneousPanelLayout);
+        micellaneousPanelLayout.setHorizontalGroup(
+            micellaneousPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+            .addGroup(micellaneousPanelLayout.createSequentialGroup()
+                .addGap(62, 62, 62)
+                .addGroup(micellaneousPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                    .addGroup(micellaneousPanelLayout.createSequentialGroup()
+                        .addGroup(micellaneousPanelLayout.createParallelGroup(GroupLayout.Alignment.TRAILING, false)
+                            .addComponent(micellaneousAmountLabel, GroupLayout.Alignment.LEADING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(micellaneousItemLabel, GroupLayout.Alignment.LEADING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(micellaneousDateLabel, GroupLayout.Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 64, Short.MAX_VALUE))
+                        .addGap(67, 67, 67))
+                    .addGroup(micellaneousPanelLayout.createSequentialGroup()
+                        .addComponent(micellaneousNotesLabel, GroupLayout.DEFAULT_SIZE, 138, Short.MAX_VALUE)
+                        .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)))
+                .addGroup(micellaneousPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                    .addGroup(micellaneousPanelLayout.createSequentialGroup()
+                        .addGroup(micellaneousPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING, false)
+                            .addComponent(micellaneousAmountText)
+                            .addComponent(micellaneousItemText)
+                            .addComponent(micellaneousDateText)
+                            .addGroup(micellaneousPanelLayout.createSequentialGroup()
+                                .addComponent(micellaneousSubmitButton, GroupLayout.PREFERRED_SIZE, 88, GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)))
+                        .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(micellaneousPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                            .addComponent(micellaneousClearButton)
+                            .addComponent(micellaneousPhpLabel)))
+                    .addComponent(micellaneousNotesScroll, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+                .addContainerGap(87, Short.MAX_VALUE))
+        );
+        micellaneousPanelLayout.setVerticalGroup(
+            micellaneousPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+            .addGroup(micellaneousPanelLayout.createSequentialGroup()
+                .addGap(21, 21, 21)
+                .addGroup(micellaneousPanelLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                    .addComponent(micellaneousDateLabel)
+                    .addComponent(micellaneousDateText, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+                .addGap(18, 18, 18)
+                .addGroup(micellaneousPanelLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                    .addComponent(micellaneousItemLabel)
+                    .addComponent(micellaneousItemText, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+                .addGap(18, 18, 18)
+                .addGroup(micellaneousPanelLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                    .addComponent(micellaneousAmountLabel)
+                    .addComponent(micellaneousAmountText, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                    .addComponent(micellaneousPhpLabel))
+                .addGap(18, 18, 18)
+                .addGroup(micellaneousPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                    .addComponent(micellaneousNotesLabel)
+                    .addComponent(micellaneousNotesScroll, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+                .addGap(89, 89, 89)
+                .addGroup(micellaneousPanelLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                    .addComponent(micellaneousClearButton)
+                    .addComponent(micellaneousSubmitButton))
+                .addContainerGap(24, Short.MAX_VALUE))
+        );
+
+        GroupLayout layout = new GroupLayout(getContentPane());
+        getContentPane().setLayout(layout);
+        layout.setHorizontalGroup(
+            layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+            .addComponent(titleLabel, GroupLayout.PREFERRED_SIZE, 703, GroupLayout.PREFERRED_SIZE)
+            .addGroup(layout.createSequentialGroup()
+                .addComponent(navButtonsPanel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(micellaneousPanel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addContainerGap())
+        );
+        layout.setVerticalGroup(
+            layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+            .addGroup(layout.createSequentialGroup()
+                .addComponent(titleLabel, GroupLayout.PREFERRED_SIZE, 43, GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                    .addComponent(navButtonsPanel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(micellaneousPanel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap())
+        );
+
+        pack();
+    }
+    
+    /**
+     * Initializes the components of the summaryPanel
+     */
+    private void summaryComponents() {
+    	
+    }
+    
+    /**
+     * This method removes the present panel on the right
+     */
+    private void clearPanels() {
+    	if (status == 2) {
+    		remove(breedingPanel);
+    	} else if (status == 3) {
+    		remove(farrowingPanel);
+    	} else if (status == 4) {
+    		remove(mortalityPanel);
+    	} else if (status == 5) {
+    		remove(inventoryPanel);
+    	} else if (status == 6) {
+    		remove(finisherPanel);
+    	} else if (status == 7) {
+    		remove(butcheredPanel);
+    	} else if (status == 8) {
+    		remove(salariesPanel);
+    	} else if (status == 9) {
+    		remove(micellaneousPanel);
+    	} else if (status == 10) {
+    		remove(summaryPanel);
+    	}
+    }
+    
+    
+    //code for pressing left side buttons
+    /**
+     * When the home button is pressed
+     */
+    private void nav1ActionPerformed(ActionEvent evt) {
+    	clearPanels();
+    	status = 1;
+    	titleLabel.setText("                            Home");
+        validate();
+        repaint();
+    }
+    /**
+     * When the add breeding item is pressed
+     */
+    private void nav2ActionPerformed(ActionEvent evt) {
+    	clearPanels();
+    	breedingComponents();	
+    	status = 2;
+    	titleLabel.setText("                            Add Breeding Item");
+        validate();
+        repaint();    	
+    }
+    /**
+     * When the add farrowing item is pressed
+     */
+    private void nav3ActionPerformed(ActionEvent evt) {
+    	clearPanels();
+    	farrowingComponents();
+    	status = 3;
+    	titleLabel.setText("                            Add Farrowing Item");
+        validate();
+        repaint();    
+    }
+    /**
+     * When the add mortality item is pressed
+     */
+    private void nav4ActionPerformed(ActionEvent evt) {
+    	clearPanels();
+    	mortalityComponents();
+    	status = 4;
+    	titleLabel.setText("                            Add Mortality Item");
+        validate();
+        repaint();    
+    }
+    /**
+     * When the add inventory item is pressed
+     */
+    private void nav5ActionPerformed(ActionEvent evt) {
+    	clearPanels();    	
+    	add(inventoryPanel);
+    	status = 5;
+        titleLabel.setText("                            Add Inventory Item");
+        validate();
+        repaint();    	
+    }
+    /**
+     * When the add finisher sales item is pressed
+     */
+    private void nav6ActionPerformed(ActionEvent evt) {
+    	clearPanels();
+    	finisherComponents();
+    	status = 6;
+    	titleLabel.setText("                            Add Finisher Sales Item");
+        validate();
+        repaint();    
+    }
+    /**
+     * When the add butchered sales item is pressed
+     */
+    private void nav7ActionPerformed(ActionEvent evt) {
+    	clearPanels();
+    	butcheredComponents();
+    	status = 7;
+    	titleLabel.setText("                            Add Butchered Sales Item");
+        validate();
+        repaint();    
+    }
+    /**
+     * When the add salaries expenses item is pressed
+     */
+    private void nav8ActionPerformed(ActionEvent evt) {
+    	clearPanels();
+    	salariesComponents();
+    	status = 8;
+    	titleLabel.setText("                            Add Salaries Expenses Item");
+        validate();
+        repaint();    
+    }
+    /**
+     * When the add miscellaneous item is pressed
+     */
+    private void nav9ActionPerformed(ActionEvent evt) {
+    	clearPanels();
+    	micellaneousComponents();
+    	status = 9;
+    	titleLabel.setText("                            Add Miscellaneous Expense Item");
+        validate();
+        repaint();    
+    }
+    /**
+     * When the summary is pressed
+     */
+    private void nav10ActionPerformed(ActionEvent evt) {
+    	clearPanels();
+    	summaryComponents();
+    	status = 10;
+    	titleLabel.setText("                            Summary");
+        validate();
+        repaint();    
+    }
+    
+    //Submit buttons
+    /**
+     * When a breeding item is submitted
+     */
+    private void breedingSubmitActionPerformed(ActionEvent evt) {
+     	
+    }
+    
+    /**
+     * When a farrowing item is submitted
+     */
+    private void farrowingSubmitActionPerformed(ActionEvent evt) {
+
+    }
+    
+    /**
+     * When a mortality item is submitted
+     */
+    private void mortalitySubmitActionPerformed(ActionEvent evt) {
+
+    }
+    
+    /**
+     * When a inventory item is submitted
+     */
+    private void inventorySubmitActionPerformed(ActionEvent evt) {
+    	
+    }
+    
+    /**
+     * When a finisher item is submitted
+     */
+    private void finisherSubmitActionPerformed(ActionEvent evt) {
+
+    }
+    
+    /**
+     * When a butchered item is submitted
+     */
+    private void butcheredSubmitActionPerformed(ActionEvent evt) {
+
+    }
+    
+    /**
+     * When a salaries expense item is submitted
+     */
+    private void salariesSubmitActionPerformed(ActionEvent evt) {
+
+    }
+    
+    /**
+     * When a micellaneous expense item is submitted
+     */
+    private void micellaneousSubmitActionPerformed(ActionEvent evt) {
+    	 
+    }
+    
+    //Clear buttons
+    /**
+     * When the breedingPanel wants to be cleared
+     */
+    private void breedingClearActionPerformed(ActionEvent evt) {
+    	breedingBreedingDateText.setText("");
+        breedingSowText.setText("");
+        breedingParityText.setText("");
+        breedingBoarText.setText("");
+        breedingFarrowingText.setText("");
+        breedingNotesText.setText("");
+    }
+    
+    /**
+     * When the farrowingPanel wants to be cleared
+     */
+    private void farrowingClearActionPerformed(ActionEvent evt) {
+        farrowingDateText.setText("");
+        farrowingSowText.setText("");
+        farrowingLiveText.setText("");
+        farrowingEarText.setText("");
+        farrowingStillText.setText("");
+        farrowingMummifiedText.setText("");
+        farrowingAbnormalText.setText("");
+        farrowingNotesText.setText("");
+    }
+    
+    /**
+     * When the mortalityPanel wants to be cleared
+     */
+    private void mortalityClearActionPerformed(ActionEvent evt) {
+        mortalityDateText.setText("");
+        mortalityEarText.setText("");
+        mortalityBuildingText.setText("");
+        mortalityEmployeeText.setText("");
+        mortalityCauseText.setText("");
+    }
+    
+    /**
+     * When the inventoryPanel wants to be cleared
+     */
+    private void inventoryClearActionPerformed(ActionEvent evt) {
+        inventoryDateText.setText("");
+        inventoryReceiptText.setText("");
+        inventoryItemTypeText.setText("");
+        inventoryQuantityText.setText(""); 
+        inventoryAmountText.setText("");  
+    }
+    
+    /**
+     * When the finisherPanel wants to be cleared
+     */
+    private void finisherClearActionPerformed(ActionEvent evt) {
+    	finisherDateText.setText("");
+        finisherBuyerText.setText("");
+        finisherHeadsText.setText("");
+        finisherWeightText.setText("");
+        finisherKilosText.setText("");    
+        finisherPriceText.setText("");   
+        finisherAmountText.setText("");   
+    }
+    
+    /**
+     * When the butcheredPanel wants to be cleared
+     */
+    private void butcheredClearActionPerformed(ActionEvent evt) {
+    	 butcheredButcherText.setText("");
+         butcheredEarText.setText("");
+         butcheredWeight1Text.setText("");
+         butcheredBuyerText.setText("");
+         butcheredSoldText.setText("");
+         butcheredPriceText.setText("");
+         butcheredWeight2Text.setText("");
+         butcheredAmountText.setText("");  
+    }
+    
+    /**
+     * When the salariesPanel wants to be cleared
+     */
+    private void salariesClearActionPerformed(ActionEvent evt) {
+    	salariesDate1Text.setText("");
+        salariesDate2Text.setText("");
+        salariesEmployeeText.setText("");   
+        salariesAmountText.setText(""); 
+    }
+    
+    /**
+     * When the micellaneousPanel wants to be cleared
+     */
+    private void micellaneousClearActionPerformed(ActionEvent evt) {
+    	micellaneousDateText.setText("");
+        micellaneousItemText.setText("");
+        micellaneousAmountText.setText("");
+        micellaneousNotesText.setText("");
+    }
+
+    
     /**
      * @param args the command line arguments
      */
@@ -401,9 +1571,9 @@ public class Home extends javax.swing.JFrame {
          * http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html
          */
         try {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
+            for (UIManager.LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
                 if ("Nimbus".equals(info.getName())) {
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
+                    UIManager.setLookAndFeel(info.getClassName());
                     break;
                 }
             }
@@ -413,7 +1583,7 @@ public class Home extends javax.swing.JFrame {
             java.util.logging.Logger.getLogger(Home.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (IllegalAccessException ex) {
             java.util.logging.Logger.getLogger(Home.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
+        } catch (UnsupportedLookAndFeelException ex) {
             java.util.logging.Logger.getLogger(Home.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
         //</editor-fold>
@@ -421,7 +1591,7 @@ public class Home extends javax.swing.JFrame {
         /*
          * Create and display the form
          */
-        java.awt.EventQueue.invokeLater(new Runnable() {
+        EventQueue.invokeLater(new Runnable() {
 
             public void run() {
                 new Home().setVisible(true);
@@ -429,42 +1599,295 @@ public class Home extends javax.swing.JFrame {
         });
     }
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JLabel addButchText;
-    private javax.swing.JTextField butDate;
-    private javax.swing.JTextField buyer;
-    private javax.swing.JButton clr;
-    private javax.swing.JTextField earNum;
-    private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel10;
-    private javax.swing.JLabel jLabel11;
-    private javax.swing.JLabel jLabel12;
-    private javax.swing.JLabel jLabel13;
-    private javax.swing.JLabel jLabel2;
-    private javax.swing.JLabel jLabel3;
-    private javax.swing.JLabel jLabel4;
-    private javax.swing.JLabel jLabel5;
-    private javax.swing.JLabel jLabel6;
-    private javax.swing.JLabel jLabel7;
-    private javax.swing.JLabel jLabel8;
-    private javax.swing.JLabel jLabel9;
-    private javax.swing.JPanel jPanel1;
-    private javax.swing.JPanel jPanel2;
-    private javax.swing.JButton nav1;
-    private javax.swing.JButton nav10;
-    private javax.swing.JButton nav2;
-    private javax.swing.JButton nav3;
-    private javax.swing.JButton nav4;
-    private javax.swing.JButton nav5;
-    private javax.swing.JButton nav6;
-    private javax.swing.JButton nav7;
-    private javax.swing.JButton nav8;
-    private javax.swing.JButton nav9;
-    private javax.swing.JLabel navButchText;
-    private javax.swing.JTextField ppkg;
-    private javax.swing.JTextField soldDate;
-    private javax.swing.JButton submit;
-    private javax.swing.JTextField totAmt;
-    private javax.swing.JTextField totWeight1;
-    private javax.swing.JTextField totWeight2;
+    /**
+     * status of the GUI (what is currently shown)
+     * (1 == home)
+     * (2 == breeding)
+     * (3 == farrowing)
+     * (4 == mortality)
+     * (5 == inventory)
+     * (6 == finisher)
+     * (7 == butchered)
+     * (8 == salaries)
+     * (9 == micellaneous)
+     * (10 == summary)
+     */
+    private int status;
+    
+    //GUI left side buttons
+    /**
+     * Home button
+     */
+    private JButton nav1;
+	/**
+	 * Add Breeding Item button
+	 */
+    private JButton nav2;
+    /**
+     * Add Farrowing Item button
+     */
+    private JButton nav3;
+    /**
+     * Add Mortality Item button
+     */
+    private JButton nav4;
+    /**
+     * Add Inventory Item button
+     */
+    private JButton nav5;
+    /**
+     * Add Finisher Sales Item button
+     */
+    private JButton nav6;
+    /**
+     * Add Butchered Sales Item button
+     */
+    private JButton nav7;
+    /**
+     * Add Salaries Expenses Item button
+     */
+    private JButton nav8;
+    /**
+     * Add Micellaneous Item button
+     */
+    private JButton nav9;
+    /**
+     * Show Summary button
+     */
+    private JButton nav10;
+    
+    //Panels declaration
+    /**
+     * Panel for the buttons on the left side
+     */
+    private JPanel navButtonsPanel;
+    /**
+     * Panel for the contents of the add breeding item
+     */
+    private JPanel breedingPanel;
+    /**
+     * Panel for the contents of the add farrowing item
+     */
+    private JPanel farrowingPanel;
+    /**
+     * Panel for the contents of the add mortality item
+     */
+    private JPanel mortalityPanel;
+    /**
+     * Panel for the contents of the add inventory item
+     */
+    private JPanel inventoryPanel;
+    /**
+     * Panel for the contents of the add finisher sales item
+     */
+    private JPanel finisherPanel;
+    /**
+     * Panel for the contents of the add butchered sales item
+     */
+    private JPanel butcheredPanel;
+    /**
+     * Panel for the contents of the add salaries expenses item
+     */
+    private JPanel salariesPanel;
+    /**
+     * Panel for the contents of the add miscellaneous item
+     */
+    private JPanel micellaneousPanel;
+    /**
+     * Panel for the contents of the show summary
+     */
+    private JPanel summaryPanel;
+    //Home Labels
+    /**
+     * Label (title) on top of the panel ie. Home, add Inventory Item, etc.
+     */
+    private JLabel titleLabel;
+    /**
+     * Label of the buttons on the left side
+     */    
+    private JLabel navLabel;
+    
+    //Breeding Labels, TextFields, and Buttons
+    /**
+     * Label of breeding date
+     */
+    private JLabel breedingDateLabel;
+    /**
+     * Label of sow no.
+     */
+    private JLabel breedingSowLabel;
+    /**
+     * Label of parity
+     */
+    private JLabel breedingParityLabel;
+    /**
+     * Label of boar no.
+     */
+    private JLabel breedingBoarLabel;
+    /**
+     * Label of farrowing date
+     */
+    private JLabel breedingFarrowingLabel;
+    /**
+     * Label of breedingNotesText
+     */
+    private JLabel breedingNotesLabel;
+    /**
+     * TextField of breeding date
+     */
+    private JTextField breedingBreedingDateText;
+    /**
+     * TextField of sow no.
+     */
+    private JTextField breedingSowText;
+    /**
+     * TextField of parity
+     */
+    private JTextField breedingParityText;
+    /**
+     * TextField of boar no.
+     */
+    private JTextField breedingBoarText;
+    /**
+     * TextField of farrowing date
+     */
+    private JTextField breedingFarrowingText;
+    /**
+     * TextArea of breedingNotesText
+     */
+    private JTextArea breedingNotesText;
+    /**
+     * ScrollPane of breedingNotesText
+     */
+    private JScrollPane breedingNotesScroll;
+    /**
+     * Button of breedingSubmitButton
+     */
+    private JButton breedingSubmitButton;
+    /**
+     * Button of clear
+     */
+    private JButton breedingClearButton;  
+    
+    //Farrowing Labels, TextFields, and Buttons
+    private JLabel farrowingDateLabel;
+    private JLabel farrowingSowLabel;
+    private JLabel farrowingLiveLabel;
+    private JLabel farrowingEarLabel;
+    private JLabel farrowingStillLabel;
+    private JLabel farrowingMummifiedLabel;
+    private JLabel farrowingAbnormalLabel;
+    private JLabel farrowingNotesLabel;
+    private JTextField farrowingDateText;
+    private JTextField farrowingSowText;
+    private JTextField farrowingLiveText;
+    private JTextField farrowingEarText;   
+    private JTextField farrowingStillText;
+    private JTextField farrowingMummifiedText; 
+    private JTextField farrowingAbnormalText;
+    private JTextArea farrowingNotesText;
+    private JScrollPane farrowingNotesScroll;
+    private JButton farrowingSubmitButton;
+    private JButton farrowingClearButton;
+    
+    //Mortality Labels, TextFields, and Buttons
+    private JLabel mortalityDateLabel;
+    private JLabel mortalityEarLabel;
+    private JLabel mortalityBuildingLabel;
+    private JLabel mortalityEmployeeLabel;
+    private JLabel mortalityCauseLabel;
+    private JTextField mortalityDateText;
+    private JTextField mortalityEarText;
+    private JTextField mortalityBuildingText;
+    private JTextField mortalityEmployeeText;
+    private JTextField mortalityCauseText;
+    private JButton mortalitySubmitButton;
+    private JButton mortalityClearButton;
+    
+    //Inventory Labels, TextFields, and Buttons
+    private JLabel inventoryAmountLabel;
+    private JLabel inventoryDateLabel;
+    private JLabel inventoryReceiptLabel;
+    private JLabel inventoryItemTypeLabel;
+    private JLabel inventoryQuantityLabel;
+    private JTextField inventoryReceiptText;
+    private JTextField inventoryQuantityText;
+    private JTextField inventoryAmountText;
+    private JTextField inventoryDateText;
+    private JTextField inventoryItemTypeText;
+    private JButton inventorySubmitButton;
+    private JButton inventoryClearButton;
+    
+    //Finisher Labels, TextFields, and Buttons  
+    private JLabel finisherDateLabel;
+    private JLabel finisherBuyerLabel;
+    private JLabel finisherHeadsLabel;
+    private JLabel finisherWeightLabel;
+    private JLabel finisherKilosLabel;
+    private JLabel finisherPriceLabel;
+    private JLabel finisherAmountLabel;   
+    private JTextField finisherDateText;
+    private JTextField finisherBuyerText;
+    private JTextField finisherHeadsText;
+    private JTextField finisherWeightText; 
+    private JTextField finisherKilosText;
+    private JTextField finisherPriceText;
+    private JTextField finisherAmountText;
+    private JButton finisherSubmitButton;
+    private JButton finisherClearButton;
+
+    //Butchered Labels, TextFields, and Buttons
+    private JLabel butcheredButcherLabel;
+    private JLabel butcheredEarLabel;
+    private JLabel butcheredWeight1Label;
+    private JLabel butcheredBuyerLabel;
+    private JLabel butcheredSoldLabel;
+    private JLabel butcheredPriceLabel;
+    private JLabel butcheredWeight2Label;
+    private JLabel butcheredAmountLabel;
+    private JLabel butcheredKg1Label;
+    private JLabel butcheredPhp1Label;
+    private JLabel butcheredKg2Label;
+    private JLabel butcheredPhp2Label;
+    private JTextField butcheredButcherText;
+    private JTextField butcheredEarText;
+    private JTextField butcheredWeight1Text;
+    private JTextField butcheredBuyerText;    
+    private JTextField butcheredSoldText;
+    private JTextField butcheredPriceText;
+    private JTextField butcheredWeight2Text;    
+    private JTextField butcheredAmountText; 
+    private JButton butcheredSubmitButton;
+    private JButton butcheredClearButton;
+    
+    //Salaries Labels, TextFields, and Buttons
+    private JLabel salariesDate1Label;
+    private JLabel salariesDate2Label;
+    private JLabel salariesEmployeeLabel;
+    private JLabel salariesAmountLabel;
+    private JTextField salariesDate1Text;
+    private JTextField salariesDate2Text;
+    private JTextField salariesEmployeeText;
+    private JTextField salariesAmountText;
+    private JButton salariesSubmitButton;
+    private JButton salariesClearButton;
+    
+    //Micellaneous Labels, TextFields, and Buttons   
+    private JLabel micellaneousDateLabel;
+    private JLabel micellaneousItemLabel;
+    private JLabel micellaneousAmountLabel;
+    private JLabel micellaneousNotesLabel;
+    private JLabel micellaneousPhpLabel;     
+    private JTextField micellaneousDateText;
+    private JTextField micellaneousItemText;
+    private JTextField micellaneousAmountText;  
+    private JTextArea micellaneousNotesText;
+    private JScrollPane micellaneousNotesScroll;    
+    private JButton micellaneousSubmitButton;
+    private JButton micellaneousClearButton;
+    
+    //Summary Labels, TextFields, and Buttons
+    
+
     // End of variables declaration//GEN-END:variables
 }
