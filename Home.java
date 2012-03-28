@@ -1,24 +1,44 @@
-//run with java -cp .:sqlitejdbc-v056.jar Home
+//compile with javac -cp .:jfreechart-1.0.14.jar Home.java
+//run with  java -cp .:sqlitejdbc-v056.jar:jcommon-1.0.17.jar:jfreechart-1.0.14.jar Home
 
 import java.util.Calendar;
 import javax.swing.*;
+import javax.swing.table.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.sql.*;
 import java.util.Vector;
+import java.awt.image.BufferedImage;
+import java.io.PrintWriter;
+import java.io.IOException;
+import java.io.File;
+import javax.sound.sampled.*;
+import org.jfree.chart.*;
+import org.jfree.data.category.DefaultCategoryDataset;
+import org.jfree.chart.plot.*;
+import org.jfree.chart.renderer.category.BarRenderer;
+import org.jfree.data.general.DefaultPieDataset;
+import java.awt.image.*;
+import java.io.File;
 
 /**
- *
+ * project desciption: The project is to develop a computer application that would keep and organize farm records.
+ * The application would become a back-up for paper records and it would make it easier to view the records.
  * @author
+ * Ted Guilliano Chua, tschua@up.edu.ph
+ * Charmaine Pamela Legaspi, calegaspi@up.edu.ph
+ * Nathan Lemuel Santi, ngsanti@up.edu.ph
+ * Ric Janus Sapasap, rosapasap@up.edu.ph
  */
 public class Home extends JFrame implements ActionListener{
+	int index = 0;
+
 	// Variables declaration - do not modify//GEN-BEGIN:variables
     //SQL declarations
     /**
      * Connection to SQLite database
      */
     private static Connection sqlconn;
-    
     /**
      * SQL statements (creating a table/adding to existing table)
      */
@@ -32,6 +52,39 @@ public class Home extends JFrame implements ActionListener{
      */
     private static ResultSet sqlrs;
     
+    //Auto-complete
+    /**
+     * Popup for showing the possible values to complete the user input
+     */
+    private static Popup showEars;
+    /**
+     * Used to generate popups whenever needed
+     */
+    private static PopupFactory popups;
+    /**
+     * List that contains the auto-complete 
+     */
+    private static JList popupEars;
+    /**
+     * Scroll pane for the auto-complete list
+     */
+    private static JScrollPane popupScroll;
+	/**
+	 * The table that contains the values from the showHistory panel
+	 */
+    private static JTable historyTable;
+    /**
+     * Scroll pane for the table for the showHistory panel
+     */
+    private static JScrollPane historyScroll;
+    /**
+     * Model for the style of table used
+     */
+    private static DefaultTableModel model;
+    /**
+     * button for exporting the image file in the show summaryPanel
+     */
+    private JButton exportButton1;
     
     /**
      * status of the GUI (what is currently shown)
@@ -94,7 +147,9 @@ public class Home extends JFrame implements ActionListener{
      * Add employee, buyer, or item button
      */
     private JButton nav11;
-	
+	/**
+	 * Show History button
+	 */
 	private JButton nav12;
     
     //Panels declaration
@@ -102,6 +157,11 @@ public class Home extends JFrame implements ActionListener{
      * Panel for the buttons on the left side
      */
     private JPanel navButtonsPanel;
+	/**
+	 * Panel to show the main page of the program
+	 */
+	private JPanel homePanel;
+	
     /**
      * Panel for the contents of the add breeding item
      */
@@ -155,7 +215,7 @@ public class Home extends JFrame implements ActionListener{
     private JLabel navLabel;
 	
 	private JLabel correctNavLabel;
-    
+	
     //Breeding Labels, TextFields, and Buttons
     /**
      * Label of breeding date
@@ -172,7 +232,6 @@ public class Home extends JFrame implements ActionListener{
     /**
      * Label of boar no.
      */	 
-	 
 	private JComboBox breedingBreedingMonths;
 	private JComboBox breedingBreedingDays;
 	private JTextField breedingBreedingYear;
@@ -233,6 +292,7 @@ public class Home extends JFrame implements ActionListener{
 	private JTextField farrowingYear;
     private JLabel farrowingDateLabel;
     private JLabel farrowingSowLabel;
+    private JLabel farrowingBoarLabel;
     private JLabel farrowingLiveLabel;
     private JLabel farrowingEarLabel;
     private JLabel farrowingStillLabel;
@@ -241,6 +301,7 @@ public class Home extends JFrame implements ActionListener{
     private JLabel farrowingNotesLabel;
     private JTextField farrowingDateText;
     private JTextField farrowingSowText;
+    private JTextField farrowingBoarText;
     private JTextField farrowingLiveText;
     private JTextField farrowingEarText;   
     private JTextField farrowingStillText;
@@ -379,6 +440,12 @@ public class Home extends JFrame implements ActionListener{
 	private JTextField summaryStartYear;
 	private JComboBox summaryEndMonths;
 	private JTextField summaryEndYear;
+	private JComboBox summaryOption;
+	
+    //History Labels, TextFields, and Buttons
+    private JComboBox historyMonth;
+	private JTextField historyYear;
+	private JComboBox historyOption;
     
     //Add Labels, TextFields, and Buttons
 	private JComboBox addAddedMonths;
@@ -417,7 +484,466 @@ public class Home extends JFrame implements ActionListener{
     private static PreparedStatement prepSoldPigs;    
 	
     // End of variables declaration//GEN-END:variables
+	
+    /**
+     * Saves the image file from the show Summary panel outside the program
+     */
+	private int exportChart(JFreeChart chart)
+	{
+		try
+		{
+			String fileName = JOptionPane.showInputDialog(null,"Input Desired Filename(.jpg): ");
+			if(fileName != null)
+			{
+				File temp = new File(fileName+".jpg");
+				int ret = JOptionPane.YES_OPTION;
+				if(temp.exists())
+				{
+					ret=JOptionPane.showConfirmDialog(null, "This file exists. Do you want to overwrite?","Confirmation", JOptionPane.YES_NO_OPTION);
+				}
+				
+				if(ret == JOptionPane.YES_OPTION)
+				{
+					ChartUtilities.saveChartAsJPEG(new File(fileName+".jpg"), chart, 500, 300);
+					return 1;
+				}
+				else
+				{
+					return 0;
+				}
+			}
+			else
+			{
+				return -1;
+			}
+		}catch(IOException ioe)
+		{
+			ioe.printStackTrace();
+			return -1;
+		}
+	}
+	
+	/**
+	 * Saves the table that is shown in the show history panel outside the program into sa .csv file
+	 */
+	private int export(JTable jt)
+	{
+		try
+		{
+			String fileName = JOptionPane.showInputDialog(null,"Input Desired Filename(.csv): ");
+			if(fileName != null)
+			{
+				File temp = new File(fileName+".csv");
+				int ret = JOptionPane.YES_OPTION;
+				if(temp.exists())
+				{
+					ret=JOptionPane.showConfirmDialog(null, "This file exists. Do you want to overwrite?","Confirmation", JOptionPane.YES_NO_OPTION);
+				}
+				
+				if(ret == JOptionPane.YES_OPTION)
+				{
+					
+					TableModel tm = jt.getModel();
+					PrintWriter pw = new PrintWriter(temp);
+					
+					for(int x=0;x<tm.getColumnCount();x++)
+					{
+						pw.print(tm.getColumnName(x)+",");
+					}
+					pw.println();
+					
+					for(int y=0;y<tm.getRowCount();y++)
+					{
+						for(int x=0;x<tm.getColumnCount();x++)
+						{
+							if(tm.getValueAt(y,x) != null)
+							{
+								pw.print(tm.getValueAt(y,x).toString().replace(',',' ')+",");
+							}
+							else
+							{
+								pw.print("null,");
+							}
+						}
+						pw.println();
+					}
+					pw.close();
+				}
+				else
+				{
+					return 0;
+				}
+				
+				return 1;
+			}
+			else
+			{
+				return -1;
+			}
+		}catch(IOException ioe)
+		{
+			ioe.printStackTrace();
+			return -1;
+		}
+	}
     
+	/**
+	 * clears all the contents of the jtextfields in all panels
+	 */
+    private void clearAll() {
+    	breedingBreedingDateText.setText("");
+        breedingSowText.setText("");
+        breedingParityText.setText("");
+        breedingBoarText.setText("");
+        breedingFarrowingText.setText("");
+        breedingNotesText.setText("");
+        farrowingDateText.setText("");
+        farrowingSowText.setText("");
+        farrowingBoarText.setText("");
+        farrowingLiveText.setText("");
+        farrowingEarText.setText("");
+        farrowingStillText.setText("");
+        farrowingMummifiedText.setText("");
+        farrowingAbnormalText.setText("");
+        farrowingNotesText.setText("");
+        mortalityDateText.setText("");
+        mortalityEarText.setText("");
+        mortalityBuildingText.setText("");
+        mortalityCauseText.setText("");
+        inventoryDateText.setText("");
+        inventoryReceiptText.setText("");
+        inventoryQuantityText.setText(""); 
+        inventoryAmountText.setText("");  
+    	finisherDateText.setText("");
+        finisherHeadsText.setText("");
+        finisherWeightText.setText("");
+        finisherKilosText.setText("");    
+        finisherPriceText.setText("");   
+        finisherAmountText.setText("");  
+        finisherEarsText.setText("");
+    	butcheredButcherText.setText("");
+        butcheredEarText.setText("");
+        butcheredWeight1Text.setText("");
+        butcheredSoldText.setText("");
+        butcheredPriceText.setText("");
+        butcheredWeight2Text.setText("");
+        butcheredAmountText.setText("");  
+    	salariesDate1Text.setText("");
+        salariesDate2Text.setText("");  
+        salariesAmountText.setText(""); 
+    	micellaneousDateText.setText("");
+        micellaneousAmountText.setText("");
+        micellaneousNotesText.setText("");
+    	addInputText.setText("");
+    	addAdditionalText.setText("");
+		
+		if(showEars!=null)
+		{
+			showEars.hide();
+		}
+    }
+    
+    /**
+     * What to do when a sow number is being typed in the add breeding item
+     */
+    private void breedingSowPopupActionPerformed() {   
+    	try {
+    		if (showEars != null) {
+    			showEars.hide();
+    		}
+    		
+    		popups = PopupFactory.getSharedInstance();
+        	popupEars = new JList();
+    		
+        	Vector<String> ears = new Vector<String>();
+    		sqlrs = sqlstat.executeQuery("SELECT * FROM pigs WHERE ear_no LIKE '" + breedingSowText.getText() + "%' AND pig_id = 2;"); 
+    		while (sqlrs.next()) {
+    			ears.add(sqlrs.getString("ear_no"));
+    		}
+    		popupEars = new JList(ears);
+    		popupEars.addMouseListener(new MouseAdapter() {
+    			public void mouseClicked(MouseEvent evt) {
+            		breedingSowText.setText(popupEars.getSelectedValue().toString());
+            		showEars.hide();
+            	}
+    		});
+    		popupScroll.setViewportView(popupEars);
+    		sqlrs.close();
+    		int x = (int)breedingSowText.getLocationOnScreen().getX();
+    		int y = (int)breedingSowText.getLocationOnScreen().getY();
+    		showEars = popups.getPopup((Component)breedingSowText, (Component)popupScroll, x, y+breedingSowText.getHeight());
+    		
+    		showEars.show();
+    		if (ears.isEmpty()) {
+    			if (breedingSowText.getText().length() > 0) {
+    				breedingSowText.setText(breedingSowText.getText().substring(0, breedingSowText.getText().length() - 1));
+    			}
+    			showEars.hide();
+    		}
+    	} catch (Exception e) {
+    		e.printStackTrace();
+    	}
+    }
+    
+    /**
+     * What to do when a boar number is being typed in the add breeding item
+     */
+    private void breedingBoarPopupActionPerformed() {   
+    	try {
+    		if (showEars != null) {
+    			showEars.hide();
+    		}
+    		
+    		popups = PopupFactory.getSharedInstance();
+        	popupEars = new JList();
+    		
+        	Vector<String> ears = new Vector<String>();
+    		sqlrs = sqlstat.executeQuery("SELECT * FROM pigs WHERE ear_no LIKE '" + breedingBoarText.getText() + "%' AND pig_id = 1;"); 
+    		while (sqlrs.next()) {
+    			ears.add(sqlrs.getString("ear_no"));
+    		}
+    		popupEars = new JList(ears);
+    		popupEars.addMouseListener(new MouseAdapter() {
+    			public void mouseClicked(MouseEvent evt) {
+            		breedingBoarText.setText(popupEars.getSelectedValue().toString());
+            		showEars.hide();
+            	}
+    		});
+    		popupScroll.setViewportView(popupEars);
+    		sqlrs.close();
+    		int x = (int)breedingBoarText.getLocationOnScreen().getX();
+    		int y = (int)breedingBoarText.getLocationOnScreen().getY();
+    		showEars = popups.getPopup((Component)breedingBoarText, (Component)popupScroll, x, y+breedingBoarText.getHeight());
+    		
+    		showEars.show();
+    		if (ears.isEmpty()) {
+    			if (breedingBoarText.getText().length() > 0) {
+    				breedingBoarText.setText(breedingBoarText.getText().substring(0, breedingBoarText.getText().length() - 1));
+    			}
+    			showEars.hide();
+    		}
+    	} catch (Exception e) {
+    		e.printStackTrace();
+    	}
+    }
+    
+    /**
+     * What to do when a sow number is being typed in the add farrowing item
+     */
+    private void farrowingSowPopupActionPerformed() {   
+    	try {
+    		if (showEars != null) {
+    			showEars.hide();
+    		}
+    		
+    		popups = PopupFactory.getSharedInstance();
+        	popupEars = new JList();
+    		
+        	Vector<String> ears = new Vector<String>();
+    		sqlrs = sqlstat.executeQuery("SELECT * FROM breeding WHERE sow_no LIKE '" + farrowingSowText.getText() + "%' AND farrowing_month IS NULL;"); 
+    		while (sqlrs.next()) {
+    			ears.add(sqlrs.getString("sow_no"));
+    		}
+    		popupEars = new JList(ears);
+    		popupEars.addMouseListener(new MouseAdapter() {
+    			public void mouseClicked(MouseEvent evt) {
+            		farrowingSowText.setText(popupEars.getSelectedValue().toString());
+            		showEars.hide();
+            	}
+    		});
+    		popupScroll.setViewportView(popupEars);
+    		sqlrs.close();
+    		int x = (int)farrowingSowText.getLocationOnScreen().getX();
+    		int y = (int)farrowingSowText.getLocationOnScreen().getY();
+    		showEars = popups.getPopup((Component)farrowingSowText, (Component)popupScroll, x, y+farrowingSowText.getHeight());
+    		
+    		showEars.show();
+    		if (ears.isEmpty()) {
+    			if (farrowingSowText.getText().length() > 0) {
+    				farrowingSowText.setText(farrowingSowText.getText().substring(0, farrowingSowText.getText().length() - 1));
+    			}
+    			showEars.hide();
+    		}
+    	} catch (Exception e) {
+    		e.printStackTrace();
+    	}
+    }
+    
+    /**
+     * What to do when a boar number is being typed in the add farrowing item
+     */
+    private void farrowingBoarPopupActionPerformed() {   
+    	try {
+    		if (showEars != null) {
+    			showEars.hide();
+    		}
+    		
+    		popups = PopupFactory.getSharedInstance();
+        	popupEars = new JList();
+    		
+        	Vector<String> ears = new Vector<String>();
+    		sqlrs = sqlstat.executeQuery("SELECT * FROM breeding WHERE boar_no LIKE '" + farrowingBoarText.getText() + "%' AND farrowing_month IS NULL;"); 
+    		while (sqlrs.next()) {
+    			ears.add(sqlrs.getString("boar_no"));
+    		}
+    		popupEars = new JList(ears);
+    		popupEars.addMouseListener(new MouseAdapter() {
+    			public void mouseClicked(MouseEvent evt) {
+            		farrowingBoarText.setText(popupEars.getSelectedValue().toString());
+            		showEars.hide();
+            	}
+    		});
+    		popupScroll.setViewportView(popupEars);
+    		sqlrs.close();
+    		int x = (int)farrowingBoarText.getLocationOnScreen().getX();
+    		int y = (int)farrowingBoarText.getLocationOnScreen().getY();
+    		showEars = popups.getPopup((Component)farrowingBoarText, (Component)popupScroll, x, y+farrowingBoarText.getHeight());
+    		
+    		showEars.show();
+    		if (ears.isEmpty()) {
+    			if (farrowingBoarText.getText().length() > 0) {
+    				farrowingBoarText.setText(farrowingBoarText.getText().substring(0, farrowingBoarText.getText().length() - 1));
+    			}
+    			showEars.hide();
+    		}
+    		
+    	} catch (Exception e) {
+    		e.printStackTrace();
+    	}
+    }
+    
+    /**
+     * What to do when an ear number is being entered in the add mortality item
+     */
+    private void mortalityEarPopupActionPerformed() {   
+    	try {
+    		if (showEars != null) {
+    			showEars.hide();
+    		}
+    		
+    		popups = PopupFactory.getSharedInstance();
+        	popupEars = new JList();
+    		
+        	Vector<String> ears = new Vector<String>();
+    		sqlrs = sqlstat.executeQuery("SELECT * FROM pigs WHERE ear_no LIKE '" + mortalityEarText.getText() + "%' AND month_died = 0;"); 
+    		while (sqlrs.next()) {
+    			ears.add(sqlrs.getString("ear_no"));
+    		}
+    		popupEars = new JList(ears);
+    		popupEars.addMouseListener(new MouseAdapter() {
+    			public void mouseClicked(MouseEvent evt) {
+            		mortalityEarText.setText(popupEars.getSelectedValue().toString());
+            		showEars.hide();
+            	}
+    		});
+    		popupScroll.setViewportView(popupEars);
+    		sqlrs.close();
+    		int x = (int)mortalityEarText.getLocationOnScreen().getX();
+    		int y = (int)mortalityEarText.getLocationOnScreen().getY();
+    		showEars = popups.getPopup((Component)mortalityEarText, (Component)popupScroll, x, y+mortalityEarText.getHeight());
+    		
+    		showEars.show();
+    		if (ears.isEmpty()) {
+				if(mortalityEarText.getText().length() > 0)
+				{
+					mortalityEarText.setText(mortalityEarText.getText().substring(0, mortalityEarText.getText().length() - 1));
+				}
+				showEars.hide();
+    		}
+    	} catch (Exception e) {
+    		e.printStackTrace();
+    	}
+    }
+    
+    /**
+     * What to do when an ear number is being entered in the add butchered sales item
+     */
+    private void butcheredEarPopupActionPerformed() {   
+    	try {
+    		if (showEars != null) {
+    			showEars.hide();
+    		}
+    		
+    		popups = PopupFactory.getSharedInstance();
+        	popupEars = new JList();
+    		
+        	Vector<String> ears = new Vector<String>();
+    		sqlrs = sqlstat.executeQuery("SELECT * FROM pigs WHERE ear_no LIKE '" + butcheredEarText.getText() + "%' AND month_died = 0 AND pig_id = 3;"); 
+    		while (sqlrs.next()) {
+    			ears.add(sqlrs.getString("ear_no"));
+    		}
+    		popupEars = new JList(ears);
+    		popupEars.addMouseListener(new MouseAdapter() {
+    			public void mouseClicked(MouseEvent evt) {
+            		butcheredEarText.setText(popupEars.getSelectedValue().toString());
+            		showEars.hide();
+            	}
+    		});
+    		popupScroll.setViewportView(popupEars);
+    		sqlrs.close();
+    		int x = (int)butcheredEarText.getLocationOnScreen().getX();
+    		int y = (int)butcheredEarText.getLocationOnScreen().getY();
+    		showEars = popups.getPopup((Component)butcheredEarText, (Component)popupScroll, x, y+butcheredEarText.getHeight());
+    		
+    		showEars.show();
+    		if (ears.isEmpty()) {
+    			if (butcheredEarText.getText().length() > 0) {
+    				butcheredEarText.setText(butcheredEarText.getText().substring(0, butcheredEarText.getText().length() - 1));
+    				
+    			}
+    			showEars.hide();
+    		}
+    	} catch (Exception e) {
+    		e.printStackTrace();
+    	}
+    }
+    
+    /**
+     * What to do when an reicpt number is being entered in the add inventory sales item
+     */
+    private void inventoryReceiptTextPopupActionPerformed() {   
+    	try {
+    		if (showEars != null) {
+    			showEars.hide();
+    		}
+    		
+    		popups = PopupFactory.getSharedInstance();
+        	popupEars = new JList();
+    		
+        	Vector<String> ears = new Vector<String>();
+    		sqlrs = sqlstat.executeQuery("SELECT * FROM inventoryexpenses WHERE delivery_receipt_no LIKE '" + inventoryReceiptText.getText() + "%';"); 
+    		while (sqlrs.next()) {
+    			ears.add(sqlrs.getString("delivery_receipt_no"));
+    		}
+    		popupEars = new JList(ears);
+    		popupEars.addMouseListener(new MouseAdapter() {
+    			public void mouseClicked(MouseEvent evt) {
+            		inventoryReceiptText.setText(popupEars.getSelectedValue().toString());
+            		showEars.hide();
+            	}
+    		});
+    		popupScroll.setViewportView(popupEars);
+    		sqlrs.close();
+    		int x = (int)inventoryReceiptText.getLocationOnScreen().getX();
+    		int y = (int)inventoryReceiptText.getLocationOnScreen().getY();
+    		showEars = popups.getPopup((Component)inventoryReceiptText, (Component)popupScroll, x, y+inventoryReceiptText.getHeight());
+    		
+    		showEars.show();
+    		if (ears.isEmpty()) {
+    			if (inventoryReceiptText.getText().length() > 0) {
+	    			inventoryReceiptText.setText(inventoryReceiptText.getText().substring(0, inventoryReceiptText.getText().length() - 1));
+	    			
+    			}
+    			showEars.hide();
+    		}
+    	} catch (Exception e) {
+    		e.printStackTrace();
+    	}
+    }
+    
+    /**
+     * Convert the string to the associated pig type in the pig types table in the database
+     */
     private int pigToInt(String pig) {
 		int pigInt = 0;
 		if (pig.equalsIgnoreCase("boar")) {
@@ -432,6 +958,9 @@ public class Home extends JFrame implements ActionListener{
 		return pigInt;
 	}
 
+    /**
+     * Converts the month string to its associated integer value
+     */
 	private int monthToInt(String month) {
 		int monthInt = 0;
 		if (month.equalsIgnoreCase("January")) {
@@ -464,23 +993,80 @@ public class Home extends JFrame implements ActionListener{
 		return monthInt;
 	}
 	
-	private boolean checkDate(int month,int day,int year) {
-		boolean isLeap = false;	
-		if(year % 100 == 0 && year % 400 != 0) {	
+	/**
+	 * checks if the date inputted is after the current system date
+	 * returns true if the date is before the current date
+	 */
+	private boolean validateDate(int month,int day,int year)
+	{
+		java.util.Date currDate = Calendar.getInstance().getTime();
+		java.util.Date inputDate = new java.util.Date(year-1900,month-1,day);
+		
+		if(currDate.compareTo(inputDate)<0)
+		{
+			return false;
+		}		
+		
+		return true;
+	}
+	
+	/**
+	 * checks of the order of the two dates entered is correct
+	 * returns true if the first parameter(start) is before the second parameter(end)
+	 */
+	private boolean dateOrderCheck(java.util.Date start,java.util.Date end)
+	{
+		if(start.compareTo(end) <= 0) {
+			return false;
+		}		
+		
+		return true;
+	}
+	
+	/**
+	 * checks if the entered date is valid ie. no month greater than 12, no day greater than 31, etc.
+	 */
+	private boolean checkDate(int month,int day,int year)
+	{
+		boolean isLeap = false;
+		
+		if(year%100 == 0 && year%400 != 0)
+		{	
 			isLeap = false;
-		} else if(year % 4 == 0) {
+		}
+		else	if(year%4 == 0)
+		{
 			isLeap = true;
 		}
-		if(month == 2) {
-			if((!isLeap) && day >= 29) {
+		
+		if(month == 2)
+		{
+			if(isLeap)
+			{
+				if(day >0 && day <30)
+				{
+					return true;
+				}
 				return false;
 			}
-		}	
-		if(month == 4 || month == 6 || month == 9 || month == 11) {
-			if(day==31) {
+			else
+			{
+				if(day >0 && day <29)
+				{
+					return true;
+				}
 				return false;
 			}
-		}	
+		}
+		
+		if(month == 4|| month == 6|| month ==9|| month ==11)
+		{
+			if(day==31)
+			{
+				return false;
+			}
+		}
+		
 		return true;
 	}
 	
@@ -506,8 +1092,22 @@ public class Home extends JFrame implements ActionListener{
 				addAddedDays.setVisible(false);
 				addAddedYear.setVisible(false);
 				addPigBox.setVisible(false);
-			}
-			else if(addWhatBox.getSelectedIndex() == 4)
+			} else if (addWhatBox.getSelectedIndex() == 4) {		
+				addNameLabel.setText("Receipt Number");
+				addAdditionalLabel.setVisible(false);
+				addDaysLabel.setVisible(true);
+				addMonthsLabel.setVisible(true);
+				addYearLabel.setVisible(true);
+				addNameLabel.setVisible(true);
+				addInputText.setVisible(true);
+				addAdditionalText.setVisible(false);
+				addSubmitButton.setVisible(true);
+				addClearButton.setVisible(true);
+				addAddedMonths.setVisible(true);
+				addAddedDays.setVisible(true);
+				addAddedYear.setVisible(true);
+				addPigBox.setVisible(false);		
+			} else if(addWhatBox.getSelectedIndex() == 5)
 			{
 				addNameLabel.setText("Ear Number");
 				addAdditionalLabel.setVisible(false);
@@ -567,10 +1167,11 @@ public class Home extends JFrame implements ActionListener{
      * Creates new form Home
      */
     public Home() {
-    	status = 0;
+    	status = 1;
         initComponents();
+		homeComponents();
         setResizable(false);
-        this.setTitle("Farm Database");
+        this.setTitle("P.I.G.S");
     }
 
     /**
@@ -581,7 +1182,13 @@ public class Home extends JFrame implements ActionListener{
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
-	
+    	popupEars = new JList();
+    	popupScroll = new JScrollPane();
+    	popupScroll.setViewportView(popupEars);
+    	historyTable = new JTable();
+    	historyScroll = new JScrollPane();
+    	historyScroll.setViewportView(historyTable);
+    	
 		String[] months = {"January", "February", "March", "April", "May", "June", "July", "August", "Septemer", "October", "November", "December"};
 		Integer[] days = new Integer[31];
 		
@@ -606,6 +1213,9 @@ public class Home extends JFrame implements ActionListener{
         nav11 = new JButton();
 		nav12 = new JButton();
 		
+		homePanel = new JPanel();
+		homePanel.setSize(442,467);
+		
         //Essential GUI components (Home)
 		correctNavLabel = new JLabel("Navigation");
         titleLabel = new JLabel();
@@ -623,6 +1233,7 @@ public class Home extends JFrame implements ActionListener{
 		summaryPanel.setSize(442,467);
         addPanel = new JPanel();
 		historyPanel = new JPanel();
+		historyPanel.setSize(442,467);
         
         //Breeding labels, text fields, scroll
         breedingPanel = new JPanel();
@@ -652,6 +1263,7 @@ public class Home extends JFrame implements ActionListener{
 		farrowingYear = new JTextField(year + "");
         farrowingDateLabel = new JLabel();
         farrowingSowLabel = new JLabel();
+        farrowingBoarLabel = new JLabel();
         farrowingLiveLabel = new JLabel();
         farrowingEarLabel = new JLabel();
         farrowingStillLabel = new JLabel();
@@ -660,6 +1272,7 @@ public class Home extends JFrame implements ActionListener{
         farrowingNotesLabel = new JLabel();       
         farrowingDateText = new JTextField();
         farrowingSowText = new JTextField();
+        farrowingBoarText = new JTextField();
         farrowingLiveText = new JTextField();
         farrowingEarText = new JTextField();
         farrowingStillText = new JTextField();
@@ -783,8 +1396,13 @@ public class Home extends JFrame implements ActionListener{
 		summaryStartMonths = new JComboBox(months);
 		summaryStartYear = new JTextField(year+"");
 		summaryEndMonths = new JComboBox(months);
+		summaryOption = new JComboBox(new String[]{"Choose one","Total Expenses(Bar)","Total Expenses(Pie)","Salaries Expense","Inventory Expenses","Misc. Expense","Total Sales","Finisher Sales","Butchered Sales","Net Income"});
 		summaryEndYear = new JTextField(year+"");
-       
+		
+		//History
+		historyMonth = new JComboBox(months);
+		historyYear = new JTextField(year+"");
+		historyOption = new JComboBox(new String[]{"Choose one","Breeding","Farrowing","Sold Butchered","Sold Alive","Salaries","Inventory Expenses","Misc. Expenses","pigs","employees","buyers","items"});
 
         //Add employee, buyer, or item labels and corresponding text fields
 		addMonthsLabel = new JLabel("Month");
@@ -797,7 +1415,7 @@ public class Home extends JFrame implements ActionListener{
 		addAddedYear = new JTextField(year+"");
         addWhatLabel = new JLabel();
         addNameLabel = new JLabel();
-        String[] types = {"Select one...","employee", "buyer", "item","pig"};
+        String[] types = {"Select one...","employee", "buyer", "item", "receipt no.","pig"};
 		String[] pigTypes = {"Boar","Sow"};
 		addPigBox = new JComboBox(pigTypes);
         addWhatBox = new JComboBox(types);
@@ -811,73 +1429,84 @@ public class Home extends JFrame implements ActionListener{
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         titleLabel.setBackground(new Color(51, 153, 255));
         titleLabel.setFont(new Font("Verdana", 1, 24)); // NOI18N
-        titleLabel.setText("                                             Home");
+        titleLabel.setText("                                             ");
         navLabel.setFont(new Font("Verdana", 0, 12)); // NOI18N
         navLabel.setText("");
 		correctNavLabel.setBounds(94,0,100,25);
 
         //Adds ActionListeners to left side buttons
         nav1.setText("Home");
+		nav1.setBackground(new Color(255,255,255));
         nav1.addActionListener(new ActionListener() {
         	public void actionPerformed(ActionEvent evt) {
         		nav1ActionPerformed(evt); 		
         	}
         });
         nav2.setText("Add Breeding Items");
+		nav2.setBackground(new Color(200,75,75));
         nav2.addActionListener(new ActionListener() {
         	public void actionPerformed(ActionEvent evt) {
         		nav2ActionPerformed(evt); 		
         	}
         });
         nav3.setText("Add Farrowing Items");
+		nav3.setBackground(new Color(200,75,75));
         nav3.addActionListener(new ActionListener() {
         	public void actionPerformed(ActionEvent evt) {
         		nav3ActionPerformed(evt); 		
         	}
         });
         nav4.setText("Add Mortality Items");
+		nav4.setBackground(new Color(200,75,75));
         nav4.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 nav4ActionPerformed(evt);
             }
         });
         nav5.setText("Add Inventory Items");
+		nav5.setBackground(new Color(75,200,75));
         nav5.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 nav5ActionPerformed(evt);
             }
         });
         nav6.setText("Add Finisher Sales Items");
+		nav6.setBackground(new Color(200,200,75));
         nav6.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 nav6ActionPerformed(evt);
             }
         });
         nav7.setText("Add Butchered Sales Items");
+		nav7.setBackground(new Color(200,200,75));
         nav7.addActionListener(new ActionListener() {
         	public void actionPerformed(ActionEvent evt) {
         		nav7ActionPerformed(evt); 		
         	}
         });
         nav8.setText("Add Salaries Expenses Items");
+		nav8.setBackground(new Color(75,200,75));
         nav8.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 nav8ActionPerformed(evt);
             }
         });
         nav9.setText("Add Miscellaneous Expense Items");
+		nav9.setBackground(new Color(75,200,75));
         nav9.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 nav9ActionPerformed(evt);
             }
         });
         nav10.setText("Show Summary");
+		nav10.setBackground(new Color(75,75,200));
         nav10.addActionListener(new ActionListener() {
         	public void actionPerformed(ActionEvent evt) {
         		nav10ActionPerformed(evt); 		
         	}
         });
-        nav11.setText("Add Employees, Buyers, Items or Pigs");
+        nav11.setText("Add Entries");
+		nav11.setBackground(new Color(255,255,255));
         nav11.addActionListener(new ActionListener() {
         	public void actionPerformed(ActionEvent evt) {
         		nav11ActionPerformed(evt);
@@ -885,9 +1514,227 @@ public class Home extends JFrame implements ActionListener{
         });
 		
 		nav12.setText("History");
+		nav12.setBackground(new Color(75,75,200));
         nav12.addActionListener(new ActionListener() {
         	public void actionPerformed(ActionEvent evt) {
         		nav12ActionPerformed(evt);
+        	}
+        });
+        
+        //Auto-complete
+        breedingSowText.addKeyListener(new KeyListener() {
+        	public void keyPressed(KeyEvent evt) {
+        		
+        	}
+        	public void keyReleased(KeyEvent evt) {
+        		if ((showEars != null) && (evt.getKeyCode() == KeyEvent.VK_ENTER)) {
+        			popupEars.setSelectedIndex(index);
+        			breedingSowText.setText(popupEars.getSelectedValue().toString());
+        			showEars.hide();
+        		} else if((showEars != null) && (evt.getKeyCode() == KeyEvent.VK_DOWN))
+				{
+					if( index+1 < popupEars.getModel().getSize())
+					{
+						index++;
+						popupEars.setSelectedIndex(index);
+					}
+					else
+					{
+						popupEars.setSelectedIndex(popupEars.getModel().getSize());
+					}
+				} else if((showEars != null) && (evt.getKeyCode() == KeyEvent.VK_UP))
+				{
+					if( index-1 >= 0)
+					{
+						index--;
+						popupEars.setSelectedIndex(index);
+					}
+					else
+					{
+						popupEars.setSelectedIndex(popupEars.getModel().getSize());
+					}
+				}
+				else
+				{
+        			breedingSowPopupActionPerformed();
+        		}
+        	}
+        	public void keyTyped(KeyEvent evt) {
+        		
+        	}
+        });
+        breedingSowText.addMouseListener(new MouseAdapter() {
+        	public void mouseClicked(MouseEvent evt) {
+        		breedingSowPopupActionPerformed();
+        	}
+        });
+        breedingBoarText.addKeyListener(new KeyListener() {
+        	public void keyPressed(KeyEvent evt) {
+        		
+        	}
+        	public void keyReleased(KeyEvent evt) {
+        		if ((showEars != null) && (evt.getKeyCode() == KeyEvent.VK_ENTER)) {
+        			popupEars.setSelectedIndex(0);
+        			breedingBoarText.setText(popupEars.getSelectedValue().toString());
+        			showEars.hide();
+        		} else {
+        			breedingBoarPopupActionPerformed();
+        		}
+        	}
+        	public void keyTyped(KeyEvent evt) {
+        		
+        	}
+        });
+        breedingBoarText.addMouseListener(new MouseAdapter() {
+        	public void mouseClicked(MouseEvent evt) {
+        		breedingBoarPopupActionPerformed();
+        	}
+        });
+        farrowingSowText.addKeyListener(new KeyListener() {
+        	public void keyPressed(KeyEvent evt) {
+        		
+        	}
+        	public void keyReleased(KeyEvent evt) {
+        		if ((showEars != null) && (evt.getKeyCode() == KeyEvent.VK_ENTER)) {
+        			popupEars.setSelectedIndex(0);
+        			farrowingSowText.setText(popupEars.getSelectedValue().toString());
+        			showEars.hide();
+        		} else {
+        			farrowingSowPopupActionPerformed();
+        		}
+        	}
+        	public void keyTyped(KeyEvent evt) {
+        		
+        	}
+        });
+        farrowingSowText.addMouseListener(new MouseAdapter() {
+        	public void mouseClicked(MouseEvent evt) {
+        		farrowingSowPopupActionPerformed();
+        	}
+        });
+        farrowingBoarText.addKeyListener(new KeyListener() {
+        	public void keyPressed(KeyEvent evt) {
+        		
+        	}
+        	public void keyReleased(KeyEvent evt) {
+        		if ((showEars != null) && (evt.getKeyCode() == KeyEvent.VK_ENTER)) {
+        			popupEars.setSelectedIndex(0);
+        			farrowingBoarText.setText(popupEars.getSelectedValue().toString());
+        			showEars.hide();
+        		} else {
+        			farrowingBoarPopupActionPerformed();
+        		}
+        	}
+        	public void keyTyped(KeyEvent evt) {
+        		
+        	}
+        });
+        farrowingBoarText.addMouseListener(new MouseAdapter() {
+        	public void mouseClicked(MouseEvent evt) {
+        		farrowingBoarPopupActionPerformed();
+        	}
+        });
+        mortalityEarText.addKeyListener(new KeyListener() {
+        	public void keyPressed(KeyEvent evt) {
+        		
+        	}
+        	public void keyReleased(KeyEvent evt) {
+        		if ((showEars != null) && (evt.getKeyCode() == KeyEvent.VK_ENTER)) {
+        			popupEars.setSelectedIndex(0);
+        			mortalityEarText.setText(popupEars.getSelectedValue().toString());
+        			showEars.hide();
+        		} else {
+        			mortalityEarPopupActionPerformed();
+        		}
+        	}
+        	public void keyTyped(KeyEvent evt) {
+        		
+        	}
+        });
+        mortalityEarText.addMouseListener(new MouseAdapter() {
+        	public void mouseClicked(MouseEvent evt) {
+        		mortalityEarPopupActionPerformed();
+        	}
+        });
+        butcheredEarText.addKeyListener(new KeyListener() {
+        	public void keyPressed(KeyEvent evt) {
+        		
+        	}
+        	public void keyReleased(KeyEvent evt) {
+        		if ((showEars != null) && (evt.getKeyCode() == KeyEvent.VK_ENTER)) {
+        			popupEars.setSelectedIndex(0);
+        			butcheredEarText.setText(popupEars.getSelectedValue().toString());
+        			showEars.hide();
+        		} else {
+        			butcheredEarPopupActionPerformed();
+        		}
+        	}
+        	public void keyTyped(KeyEvent evt) {
+        		
+        	}
+        });
+        butcheredEarText.addMouseListener(new MouseAdapter() {
+        	public void mouseClicked(MouseEvent evt) {
+        		butcheredEarPopupActionPerformed();
+        	}
+        });
+        
+        inventoryReceiptText.addKeyListener(new KeyListener() {
+        	public void keyPressed(KeyEvent evt) {
+        		
+        	}
+        	public void keyReleased(KeyEvent evt) {
+        		if ((showEars != null) && (evt.getKeyCode() == KeyEvent.VK_ENTER)) {
+        			popupEars.setSelectedIndex(0);
+        			inventoryReceiptText.setText(popupEars.getSelectedValue().toString());
+        			showEars.hide();
+        		} else {
+        			inventoryReceiptTextPopupActionPerformed();
+        		}
+        	}
+        	public void keyTyped(KeyEvent evt) {
+        		
+        	}
+        });
+        inventoryReceiptText.addMouseListener(new MouseAdapter() {
+        	public void mouseClicked(MouseEvent evt) {
+        		inventoryReceiptTextPopupActionPerformed();
+        	}
+        });
+        
+        historyOption.addActionListener(new ActionListener() {
+        	public void actionPerformed(ActionEvent ae) {
+        		historyPanel.removeAll();
+        		historyComponents();
+        		validate();
+        		repaint();
+        	}
+        });
+        historyMonth.addActionListener(new ActionListener() {
+        	public void actionPerformed(ActionEvent evt) {
+        		historyPanel.removeAll();
+        		historyComponents();
+        		historyOption.setSelectedIndex(0);
+        		validate();
+        		repaint();
+        	}
+        });
+        this.historyYear.addKeyListener(new KeyAdapter() {
+        	public void keyReleased(KeyEvent evt) {
+        		boolean through = false;
+        		try {
+        			Integer.parseInt(historyYear.getText());
+        			through = true;
+        			if (historyYear.getText().length() > 4) {
+        				historyYear.setText(historyYear.getText().substring(0, 3));
+        			}
+        		} catch (NumberFormatException e) {
+        			
+        		} finally {
+        			if ( !through && historyYear.getText().length() > 0) {
+        				historyYear.setText(historyYear.getText().substring(0, historyYear.getText().length() - 1));
+        			}
+        		}
         	}
         });
         
@@ -1001,6 +1848,12 @@ public class Home extends JFrame implements ActionListener{
         	}
         });
         
+        summaryOption.addActionListener(new ActionListener() {
+        	public void actionPerformed(ActionEvent evt) {
+        		summaryActionPerformed(evt);
+        	}
+        });
+        
         inventoryComponents();
         
         //Layout for left side buttons
@@ -1083,15 +1936,65 @@ public class Home extends JFrame implements ActionListener{
        navButtonsPanel.add(correctNavLabel);
     }// </editor-fold>//GEN-END:initComponents
     
+	private void homeComponents()
+	{
+		homePanel.setLayout(null);
+		GroupLayout layout = new GroupLayout(getContentPane());
+        getContentPane().setLayout(layout);
+        layout.setHorizontalGroup(
+            layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+            .addComponent(titleLabel, GroupLayout.DEFAULT_SIZE, 705, Short.MAX_VALUE)
+            .addGroup(layout.createSequentialGroup()
+                .addComponent(navButtonsPanel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(homePanel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+        layout.setVerticalGroup(
+            layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+            .addGroup(layout.createSequentialGroup()
+                .addComponent(titleLabel, GroupLayout.PREFERRED_SIZE, 43, GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.TRAILING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(navButtonsPanel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addContainerGap())
+                    .addComponent(homePanel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+		);
+		ImageIcon ii = new ImageIcon("pig.png");
+		JLabel homeLabel = new JLabel(ii);
+		homeLabel.addMouseListener(new MouseAdapter()
+		{
+				public void mouseClicked(MouseEvent evt) {
+					try {
+					Clip clip = AudioSystem.getClip();
+					AudioInputStream inputStream = AudioSystem.getAudioInputStream(Home.class.getResourceAsStream("oink.wav"));
+					clip.open(inputStream);
+					clip.start(); 
+					} catch (Exception e) {
+					System.err.println(e.getMessage());
+					}
+            	}
+		});
+		JLabel txt = new JLabel("Piggery Information Generation System");
+		txt.setFont(new Font("Verdana", 1, 20));
+		homeLabel.setBounds(85,20,442,467);
+		txt.setBounds(70,20,500,25);
+	
+		homePanel.add(txt);
+		homePanel.add(homeLabel);
+		
+	}
+	
     /**
      * Initializes the components of the breedingPanel
      */
     private void breedingComponents() {
+		index = 0;
+		popupEars.setSelectedIndex(0);
         breedingDateLabel.setText("Breeding Date");
         breedingSowLabel.setText("Sow#");
-        breedingParityLabel.setText("Parity");
+        breedingParityLabel.setText("Parity(optional)");
         breedingBoarLabel.setText("Boar#");
-        breedingFarrowingLabel.setText("Farrowing Date");
         breedingSubmitButton.setText("Submit");
         breedingClearButton.setText("Clear Fields");
         breedingNotesText.setColumns(20);
@@ -1188,7 +2091,7 @@ public class Home extends JFrame implements ActionListener{
                     .addComponent(breedingPanel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
         );
 		
-		// System.out.println(breedingFarrowingText.getLocation().getX()+" "+breedingFarrowingText.getLocation().getY());
+        
 		breedingBreedingDateText.setVisible(false);
 		breedingFarrowingText.setVisible(false);
 		
@@ -1196,19 +2099,10 @@ public class Home extends JFrame implements ActionListener{
 		breedingBreedingDays.setBounds(361,21,50,25);
 		breedingBreedingYear.setBounds(419,21,50,25);
 		
-		breedingFarrowingMonths.setBounds(253,193,100,25);
-		breedingFarrowingDays.setBounds(361,193,50,25);
-		breedingFarrowingYear.setBounds(419,193,50,25);
-		
-		breedingPanel.add(breedingFarrowingMonths);
-		breedingPanel.add(breedingFarrowingDays);
-		breedingPanel.add(breedingFarrowingYear);
-		
 		breedingPanel.add(breedingBreedingMonths);
 		breedingPanel.add(breedingBreedingDays);
 		breedingPanel.add(breedingBreedingYear);
 		
-        // pack();
     }
     
     /**
@@ -1217,8 +2111,9 @@ public class Home extends JFrame implements ActionListener{
     private void farrowingComponents() {
     	farrowingDateLabel.setText("Date Farrowed");
         farrowingSowLabel.setText("Sow#");
+        farrowingBoarLabel.setText("Boar#");
         farrowingLiveLabel.setText("Live born#");
-        farrowingEarLabel.setText("Ear# Assigned");
+        farrowingEarLabel.setText("Ear# Assigned Start");
         farrowingStillLabel.setText("Stillborn#");
         farrowingMummifiedLabel.setText("Mummified#");
         farrowingAbnormalLabel.setText("Abnormal#");
@@ -1241,6 +2136,7 @@ public class Home extends JFrame implements ActionListener{
                             .addComponent(farrowingMummifiedLabel, GroupLayout.Alignment.LEADING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .addComponent(farrowingStillLabel, GroupLayout.Alignment.LEADING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .addComponent(farrowingLiveLabel, GroupLayout.Alignment.LEADING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(farrowingBoarLabel, GroupLayout.Alignment.LEADING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .addComponent(farrowingSowLabel, GroupLayout.Alignment.LEADING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .addComponent(farrowingDateLabel, GroupLayout.Alignment.LEADING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .addComponent(farrowingNotesLabel, GroupLayout.Alignment.LEADING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
@@ -1260,6 +2156,7 @@ public class Home extends JFrame implements ActionListener{
                             .addComponent(farrowingStillText)
                             .addComponent(farrowingEarText)
                             .addComponent(farrowingLiveText)
+                            .addComponent(farrowingBoarText)
                             .addComponent(farrowingSowText)
                             .addComponent(farrowingDateText)
                             .addComponent(farrowingSubmitButton, GroupLayout.PREFERRED_SIZE, 88, GroupLayout.PREFERRED_SIZE))
@@ -1279,6 +2176,10 @@ public class Home extends JFrame implements ActionListener{
                 .addGroup(farrowingPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
                     .addComponent(farrowingSowText, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
                     .addComponent(farrowingSowLabel))
+                .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(farrowingPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                    .addComponent(farrowingBoarText, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                    .addComponent(farrowingBoarLabel))
                 .addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(farrowingPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
                     .addComponent(farrowingLiveText, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
@@ -1333,8 +2234,6 @@ public class Home extends JFrame implements ActionListener{
                     .addComponent(navButtonsPanel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
         );
 		
-		
-		// System.out.println(farrowingDateText.getLocation().getX()+" "+farrowingDateText.getLocation().getY());
 		farrowingDateText.setVisible(false);
 		
 		farrowingMonths.setBounds(211,16,100,25);
@@ -1344,7 +2243,6 @@ public class Home extends JFrame implements ActionListener{
 		farrowingPanel.add(farrowingMonths);
 		farrowingPanel.add(farrowingDays);
 		farrowingPanel.add(farrowingYear);
-        // pack();
     }
     
     /**
@@ -1371,7 +2269,7 @@ public class Home extends JFrame implements ActionListener{
         } catch (SQLException e) {
     		JOptionPane.showMessageDialog(null, e.getMessage());
     	} catch(Exception e){
-    		e.printStackTrace();
+    		//e.printStackTrace();
     	}
         
         GroupLayout mortalityPanelLayout = new GroupLayout(mortalityPanel);
@@ -1383,18 +2281,18 @@ public class Home extends JFrame implements ActionListener{
                 .addGroup(mortalityPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
                     .addGroup(mortalityPanelLayout.createSequentialGroup()
                         .addGroup(mortalityPanelLayout.createParallelGroup(GroupLayout.Alignment.TRAILING, false)
-                            .addComponent(mortalityCauseLabel, GroupLayout.Alignment.LEADING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(mortalityEmployeeLabel, GroupLayout.Alignment.LEADING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .addComponent(mortalityBuildingLabel, GroupLayout.Alignment.LEADING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .addComponent(mortalityEarLabel, GroupLayout.Alignment.LEADING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .addComponent(mortalityDateLabel, GroupLayout.Alignment.LEADING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                         .addGap(67, 67, 67))
                     .addGroup(mortalityPanelLayout.createSequentialGroup()
-                        .addComponent(mortalityEmployeeLabel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(mortalityCauseLabel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)))
                 .addGroup(mortalityPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
                     .addGroup(mortalityPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING, false)
-                        .addComponent(mortalityCauseText, GroupLayout.DEFAULT_SIZE, 94, Short.MAX_VALUE)
-                        .addComponent(mortalityEmployeeBox)
+                        .addComponent(mortalityEmployeeBox, GroupLayout.DEFAULT_SIZE, 94, Short.MAX_VALUE)
+                        .addComponent(mortalityCauseText)
                         .addComponent(mortalityBuildingText)
                         .addComponent(mortalityEarText)
                         .addComponent(mortalityDateText))
@@ -1421,12 +2319,12 @@ public class Home extends JFrame implements ActionListener{
                     .addComponent(mortalityBuildingText, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
                 .addGap(18, 18, 18)
                 .addGroup(mortalityPanelLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-                    .addComponent(mortalityEmployeeBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
-                    .addComponent(mortalityEmployeeLabel))
+                    .addComponent(mortalityCauseText, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                    .addComponent(mortalityCauseLabel))
                 .addGap(18, 18, 18)
                 .addGroup(mortalityPanelLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
-                    .addComponent(mortalityCauseLabel)
-                    .addComponent(mortalityCauseText, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+                    .addComponent(mortalityEmployeeLabel)
+                    .addComponent(mortalityEmployeeBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
                 .addGap(55, 55, 55)
                 .addGroup(mortalityPanelLayout.createParallelGroup(GroupLayout.Alignment.BASELINE)
                     .addComponent(mortalityClearButton)
@@ -1454,7 +2352,6 @@ public class Home extends JFrame implements ActionListener{
                     .addComponent(navButtonsPanel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
         );
 		
-		// System.out.println(mortalityDateText.getLocation().getX()+" "+mortalityDateText.getLocation().getY());
 		mortalityDateText.setVisible(false);
 		
 		mortalityMonths.setBounds(227,21,100,25);
@@ -1464,8 +2361,6 @@ public class Home extends JFrame implements ActionListener{
 		mortalityPanel.add(mortalityMonths);
 		mortalityPanel.add(mortalityDays);
 		mortalityPanel.add(mortalityYear);
-
-        // pack();
     }
     
     /**
@@ -1476,7 +2371,7 @@ public class Home extends JFrame implements ActionListener{
 	    inventoryReceiptLabel.setText("Receipt#");
 	    inventoryItemLabel.setText("Item Type");
 	    inventoryQuantityLabel.setText("Quantity");
-	    inventoryAmountLabel.setText("Amount");
+	    inventoryAmountLabel.setText("Amount per Piece");
 	    inventorySubmitButton.setText("Submit");
 	    inventoryClearButton.setText("Clear Fields");
 	    
@@ -1492,7 +2387,7 @@ public class Home extends JFrame implements ActionListener{
 	    } catch (SQLException e) {
 			JOptionPane.showMessageDialog(null, e.getMessage());
 		} catch(Exception e){
-			e.printStackTrace();
+			//e.printStackTrace();
 		}
 	
 	    GroupLayout inventoryPanelLayout = new GroupLayout(inventoryPanel);
@@ -1577,7 +2472,11 @@ public class Home extends JFrame implements ActionListener{
 	            .addContainerGap())
 	    );
 		
-		// System.out.println(inventoryDateText.getLocation().getX()+" "+inventoryDateText.getLocation().getY());
+		JLabel php = new JLabel("php");
+		
+		php.setBounds(410,175,50,25);
+		
+		inventoryPanel.add(php);
 		inventoryDateText.setVisible(false);
 		
 		inventoryMonths.setBounds(227,21,100,25);
@@ -1587,8 +2486,6 @@ public class Home extends JFrame implements ActionListener{
 		inventoryPanel.add(inventoryMonths);
 		inventoryPanel.add(inventoryDays);
 		inventoryPanel.add(inventoryYear);
-
-	    // pack();
 	}
     
     /**
@@ -1621,7 +2518,7 @@ public class Home extends JFrame implements ActionListener{
         } catch (SQLException e) {
     		JOptionPane.showMessageDialog(null, e.getMessage());
     	} catch(Exception e){
-    		e.printStackTrace();
+    		//e.printStackTrace();
     	}
 
         GroupLayout finisherPanelLayout = new GroupLayout(finisherPanel);
@@ -1651,7 +2548,6 @@ public class Home extends JFrame implements ActionListener{
                     .addComponent(finisherKilosText, GroupLayout.Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 94, Short.MAX_VALUE)
                     .addComponent(finisherWeightText, GroupLayout.Alignment.LEADING)
                     .addComponent(finisherHeadsText, GroupLayout.Alignment.LEADING)
-                    .addComponent(finisherBuyerBox, GroupLayout.Alignment.LEADING)
                     .addComponent(finisherDateText, GroupLayout.Alignment.LEADING)
                     .addComponent(finisherSubmitButton, GroupLayout.Alignment.LEADING, GroupLayout.PREFERRED_SIZE, 88, GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
@@ -1667,9 +2563,9 @@ public class Home extends JFrame implements ActionListener{
                     .addComponent(finisherDateText, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(finisherPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                    .addComponent(finisherBuyerBox, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
                     .addComponent(finisherBuyerLabel))
                 .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+				.addGap(10,10,10)
                 .addGroup(finisherPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
                     .addComponent(finisherHeadsText, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
                     .addComponent(finisherHeadsLabel))
@@ -1720,18 +2616,29 @@ public class Home extends JFrame implements ActionListener{
                     .addComponent(finisherPanel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
         );
 		
-		// System.out.println(finisherDateText.getLocation().getX()+" "+finisherDateText.getLocation().getY());
+		
+		JLabel kg1 = new JLabel("kg");
+		JLabel kg2 = new JLabel("kg");
+		JLabel php = new JLabel("php");
 		finisherDateText.setVisible(false);
 		
-		finisherMonths.setBounds(276,16,100,25);
-		finisherDays.setBounds(384,16,50,25);
-		finisherYear.setBounds(442,16,50,25);
+		kg1.setBounds(350,104,50,25);
+		kg2.setBounds(350,145,50,25);
+		php.setBounds(350,185,50,25);
+		finisherBuyerBox.setBounds(240,43,175,25);
+		finisherPanel.add(finisherBuyerBox);
+		finisherPanel.add(kg1);
+		finisherPanel.add(kg2);
+		finisherPanel.add(php);
+		
+		finisherMonths.setBounds(240,16,100,25);
+		finisherDays.setBounds(350,16,50,25);
+		finisherYear.setBounds(410,16,50,25);		
+
 		
 		finisherPanel.add(finisherMonths);
 		finisherPanel.add(finisherDays);
 		finisherPanel.add(finisherYear);
-		
-        // pack();
     }
     
     /**
@@ -1740,7 +2647,7 @@ public class Home extends JFrame implements ActionListener{
     private void butcheredComponents() {
     	butcheredButcherLabel.setText("Butcher Date");
         butcheredEarLabel.setText("Ear#");
-        butcheredWeight1Label.setText("Total Weight");
+        butcheredWeight1Label.setText("Weight Sold");
         butcheredBuyerLabel.setText("Buyer");
         butcheredSoldLabel.setText("Sold Date");
         butcheredPriceLabel.setText("Price per kg");
@@ -1765,7 +2672,7 @@ public class Home extends JFrame implements ActionListener{
         } catch (SQLException e) {
     		JOptionPane.showMessageDialog(null, e.getMessage());
     	} catch(Exception e){
-    		e.printStackTrace();
+    		//e.printStackTrace();
     	}
 
         GroupLayout butcheredPanelLayout = new GroupLayout(butcheredPanel);
@@ -1874,7 +2781,6 @@ public class Home extends JFrame implements ActionListener{
                     .addComponent(butcheredPanel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(navButtonsPanel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
         );
-		// System.out.println(butcheredButcherText.getLocation().getX()+" "+butcheredButcherText.getLocation().getY());
 		butcheredButcherText.setVisible(false);
 		
 		butcheredButcherMonths.setBounds(231,21,100,25);
@@ -1884,8 +2790,7 @@ public class Home extends JFrame implements ActionListener{
 		butcheredPanel.add(butcheredButcherMonths);
 		butcheredPanel.add(butcheredButcherDays);
 		butcheredPanel.add(butcheredButcherYear);
-		
-		// System.out.println(butcheredSoldText.getLocation().getX()+" "+butcheredSoldText.getLocation().getY());
+
 		butcheredSoldText.setVisible(false);
 		
 		butcheredSoldMonths.setBounds(231,191,100,25);
@@ -1895,7 +2800,6 @@ public class Home extends JFrame implements ActionListener{
 		butcheredPanel.add(butcheredSoldMonths);
 		butcheredPanel.add(butcheredSoldDays);
 		butcheredPanel.add(butcheredSoldYear);
-        // pack();
     }
     
     /**
@@ -1928,7 +2832,7 @@ public class Home extends JFrame implements ActionListener{
          } catch (SQLException e) {
      		JOptionPane.showMessageDialog(null, e.getMessage());
      	} catch(Exception e){
-     		e.printStackTrace();
+     		//e.printStackTrace();
      	}
 
          GroupLayout salariesPanelLayout = new GroupLayout(salariesPanel);
@@ -2003,7 +2907,9 @@ public class Home extends JFrame implements ActionListener{
                      .addComponent(salariesPanel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
          );
 		 
-		// System.out.println(salariesDate1Text.getLocation().getX()+" "+salariesDate1Text.getLocation().getY());
+		JLabel php = new JLabel("php");
+		php.setBounds(340,133,50,25);
+		salariesPanel.add(php);
 		salariesDate1Text.setVisible(false);
 		
 		salariesStartMonths.setBounds(193,21,100,25);
@@ -2013,8 +2919,7 @@ public class Home extends JFrame implements ActionListener{
 		salariesPanel.add(salariesStartMonths);
 		salariesPanel.add(salariesStartDays);
 		salariesPanel.add(salariesStartYear);
-		
-		// System.out.println(salariesDate2Text.getLocation().getX()+" "+salariesDate2Text.getLocation().getY());
+
 		salariesDate2Text.setVisible(false);
 		
 		salariesEndMonths.setBounds(193,55 ,100,25);
@@ -2024,7 +2929,7 @@ public class Home extends JFrame implements ActionListener{
 		salariesPanel.add(salariesEndMonths);
 		salariesPanel.add(salariesEndDays);
 		salariesPanel.add(salariesEndYear);
-		// pack();
+
     }
     
     /**
@@ -2055,7 +2960,7 @@ public class Home extends JFrame implements ActionListener{
         } catch (SQLException e) {
     		JOptionPane.showMessageDialog(null, e.getMessage());
     	} catch(Exception e){
-    		e.printStackTrace();
+    		//e.printStackTrace();
     	}
         
         GroupLayout micellaneousPanelLayout = new GroupLayout(micellaneousPanel);
@@ -2139,36 +3044,26 @@ public class Home extends JFrame implements ActionListener{
                 .addContainerGap())
         );
 
-		// System.out.println(micellaneousDateText.getLocation().getX()+" "+micellaneousDateText.getLocation().getY());
 		micellaneousDateText.setVisible(false);
 		
 		micellaneousMonths.setBounds(207,21,100,25);
 		micellaneousDays.setBounds(315,21,50,25);
 		micellaneousYear.setBounds(373,21,50,25);
 		
-		// System.out.println(micellaneousPanel.getSize().getWidth()+" "+micellaneousPanel.getSize().getHeight());
 		
 		micellaneousPanel.add(micellaneousMonths);
 		micellaneousPanel.add(micellaneousDays);
 		micellaneousPanel.add(micellaneousYear);
-		
-        // pack();
+
     }
+    
     
     /**
      * Initializes the components of the summaryPanel
      */
     private void summaryComponents() {
-		javax.swing.GroupLayout summaryPanelLayout = new javax.swing.GroupLayout(summaryPanel);
-        summaryPanel.setLayout(summaryPanelLayout);
-        summaryPanelLayout.setHorizontalGroup(
-            summaryPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 482, Short.MAX_VALUE)
-        );
-        summaryPanelLayout.setVerticalGroup(
-            summaryPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 372, Short.MAX_VALUE)
-        );
+		summaryOption.setSelectedIndex(0);
+		summaryPanel.setLayout(null);
 
         GroupLayout layout = new GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -2191,6 +3086,25 @@ public class Home extends JFrame implements ActionListener{
                         .addContainerGap())
                     .addComponent(summaryPanel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
 		);
+		
+		exportButton1 = new JButton("Export");
+		exportButton1.setBounds(400,450,75,25);
+		exportButton1.addActionListener(new ActionListener(){
+			public void actionPerformed(ActionEvent ae)
+			{
+				int exportSuccess = exportChart(chart);
+				if(exportSuccess == 1)
+				{
+					JOptionPane.showMessageDialog(null, "Export Success.");
+				}
+				else if(exportSuccess == -1)
+				{
+					JOptionPane.showMessageDialog(null, "Failed to export Table.");
+				}
+			}
+		}
+		);
+		
 		JLabel startLabel = new JLabel("Start Date");
 		summaryStartMonths.setBounds(50,21,100,25);
 		summaryStartYear.setBounds(160,21,50,25);
@@ -2202,13 +3116,19 @@ public class Home extends JFrame implements ActionListener{
 		JLabel endLabel = new JLabel("End Date");
 		summaryEndMonths.setBounds(220,21 ,100,25);
 		summaryEndYear.setBounds(330,21,50,25);
+		summaryOption.setBounds(390,21,150,25);
+		
 		endLabel.setBounds(290,0,100,21);
 		
+		summaryPanel.add(exportButton1);
 		summaryPanel.add(summaryEndMonths);
 		summaryPanel.add(summaryEndYear);
+		summaryPanel.add(summaryOption);
 		
 		summaryPanel.add(startLabel);
 		summaryPanel.add(endLabel);
+
+		exportButton1.setVisible(false);
     }
     
     /**
@@ -2282,10 +3202,6 @@ public class Home extends JFrame implements ActionListener{
                         .addContainerGap())
                     .addComponent(addPanel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
         );
-			
-		// Dimension d = addInputText.getSize(null);
-		// System.out.println(addNameLabel.getLocation().getX());
-		
 		
 		
 		addPigBox.setBounds(300,21,60,25);
@@ -2334,11 +3250,21 @@ public class Home extends JFrame implements ActionListener{
 		
 		addPanel.add(addPigBox);
 		addPigBox.setVisible(false);
-        // pack();
     }
 
-	private void historyComponents()
+    private void historyComponents()
 	{
+		javax.swing.GroupLayout historyPanelLayout = new javax.swing.GroupLayout(historyPanel);
+        historyPanel.setLayout(historyPanelLayout);
+        historyPanelLayout.setHorizontalGroup(
+            historyPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 482, Short.MAX_VALUE)
+        );
+        historyPanelLayout.setVerticalGroup(
+            historyPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 372, Short.MAX_VALUE)
+        );
+	
 		GroupLayout layout = new GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -2360,13 +3286,541 @@ public class Home extends JFrame implements ActionListener{
                         .addContainerGap())
                     .addComponent(historyPanel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
         );
+		JLabel label = new JLabel("Date");
+		JButton exportButton = new JButton("Export");
+		
+		exportButton.addActionListener(new ActionListener(){
+			public void actionPerformed(ActionEvent ae)
+			{
+				int exportSuccess = export(historyTable);
+				if(exportSuccess == 1)
+				{
+					JOptionPane.showMessageDialog(null, "Export Success.");
+				}
+				else if(exportSuccess == -1)
+				{
+					JOptionPane.showMessageDialog(null, "Failed to export Table.");
+				}
+			}
+		}
+		);
+		
+		historyMonth.setBounds(50,21,100,25);
+		historyYear.setBounds(160,21,50,25);
+		label.setBounds(120,0,100,21);
+		historyOption.setBounds(220,21,150,25);
+		
+		exportButton.setBounds(380, 21, 100, 25);
+		historyPanel.add(exportButton);
+		exportButton.setVisible(false);
+		
+		historyPanel.add(historyMonth);
+		historyPanel.add(historyYear);
+		historyPanel.add(historyOption);
+		historyPanel.add(label);
+		
+		try {
+			if (historyOption.getSelectedItem().toString().equals("Breeding")) {
+				ResultSet rs = sqlstat.executeQuery("SELECT COUNT(*) FROM breeding WHERE breeding_month = " + monthToInt(historyMonth.getSelectedItem().toString()) + " AND breeding_year = " + Integer.parseInt(historyYear.getText()) + ";");
+				int noofrows = rs.getInt("COUNT(*)");
+				exportButton.setVisible(true);
+				if (noofrows > 0) {
+					String[] col = {"boar no.", "sow no.", "breeding date", "parity", "farrowing date", "remarks"};
+					
+					rs.close();
+					String[][] rows = new String[noofrows][6];
+					int j = 0;
+					while (j < noofrows) {
+						rs = sqlstat.executeQuery("SELECT * FROM breeding WHERE breeding_month = " + monthToInt(historyMonth.getSelectedItem().toString()) + " AND breeding_year = " + Integer.parseInt(historyYear.getText()) + " LIMIT " + j + ", " + (j+40) + ";");
+						
+						while (rs.next()) {
+							rows[j][0] = "" + rs.getInt(1);
+							rows[j][1] = "" + rs.getInt(2);
+							String date = "" + historyMonth.getItemAt(rs.getInt(3)-1) + " " + rs.getInt(4) + ", " + rs.getInt(5);
+							rows[j][2] = date;
+							if (rs.getInt(8) != 0) {
+								rows[j][3] = "" + rs.getInt(6);
+								date = "" + historyMonth.getItemAt(rs.getInt(7)-1) + " " + rs.getInt(8) + ", " + rs.getInt(9);
+								rows[j][4] = date;
+							} else {
+								rows[j][3] = "";
+								rows[j][4] = "";
+							}
+							rows[j][5] = rs.getString(10);			
+							j++;
+						}
+					}
+					model = new DefaultTableModel(rows,col);	
+					historyTable = new JTable(model);
+					historyTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+					historyTable.getColumnModel().getColumn(0).setPreferredWidth(70);
+					historyTable.getColumnModel().getColumn(1).setPreferredWidth(60);
+					historyTable.getColumnModel().getColumn(2).setPreferredWidth(150);
+					historyTable.getColumnModel().getColumn(3).setPreferredWidth(50);
+					historyTable.getColumnModel().getColumn(4).setPreferredWidth(150);
+					historyTable.getColumnModel().getColumn(5).setPreferredWidth(150);
+					historyTable.setPreferredScrollableViewportSize(new Dimension(450,400));
+					historyTable.setFillsViewportHeight(true);
+					historyTable.setEnabled(false);
+					historyTable.setBounds(50,50,450,400);
+					historyScroll = new JScrollPane();
+					historyScroll.setBounds(50,50,450,400);
+					historyScroll.setViewportView(historyTable);
+					historyPanel.add(historyScroll);
+				} else {
+					JOptionPane.showMessageDialog(null, "no records found");
+					exportButton.setVisible(false);
+					
+				}
+			} else if (historyOption.getSelectedItem().toString().equals("Farrowing")) {
+				ResultSet rs = sqlstat.executeQuery("SELECT COUNT(*) FROM farrowing WHERE farrowing_month = " + monthToInt(historyMonth.getSelectedItem().toString()) + " AND farrowing_year = " + Integer.parseInt(historyYear.getText()) + ";");
+				int noofrows = rs.getInt("COUNT(*)");
+				exportButton.setVisible(true);
+				if (noofrows > 0) {
+					String[] col = {"sow no.", "farrowing date", "ear nos. assigned", "live born", "still born", "mummified", "abnormal", "remarks"};
+					
+					rs.close();
+					String[][] rows = new String[noofrows][8];
+					int j = 0;
+					while (j < noofrows) {
+						rs = sqlstat.executeQuery("SELECT sow_no, farrowing_month, farrowing_day, farrowing_year, ear_nos_assigned_start, ear_nos_assigned_end, live_born_no, still_born_no, mummified_no, abnormal_no, remarks FROM farrowing WHERE farrowing_month = " + monthToInt(historyMonth.getSelectedItem().toString()) + " AND farrowing_year = " + Integer.parseInt(historyYear.getText()) + " LIMIT " + j + ", " + (j+40) + ";");
+						
+						while (rs.next()) {
+							rows[j][0] = "" + rs.getInt(1);
+							String date = "" + historyMonth.getItemAt(rs.getInt(2)-1) + " " + rs.getInt(3) + ", " + rs.getInt(4);
+							rows[j][1] = date;
+							rows[j][2] = "" + rs.getInt(5) + "-" + rs.getInt(6);
+							rows[j][3] = "" + rs.getInt(7);
+							rows[j][4] = "" + rs.getInt(8);
+							rows[j][5] = "" + rs.getInt(9);
+							rows[j][6] = "" + rs.getInt(10);
+							rows[j][7] = rs.getString(11);			
+							j++;
+						}
+					}
+					model = new DefaultTableModel(rows,col);	
+					historyTable = new JTable(model);
+					historyTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+					historyTable.getColumnModel().getColumn(0).setPreferredWidth(60);
+					historyTable.getColumnModel().getColumn(1).setPreferredWidth(150);
+					historyTable.getColumnModel().getColumn(2).setPreferredWidth(140);
+					historyTable.getColumnModel().getColumn(3).setPreferredWidth(70);
+					historyTable.getColumnModel().getColumn(4).setPreferredWidth(70);
+					historyTable.getColumnModel().getColumn(5).setPreferredWidth(80);
+					historyTable.getColumnModel().getColumn(6).setPreferredWidth(70);
+					historyTable.getColumnModel().getColumn(7).setPreferredWidth(150);
+					historyTable.setPreferredScrollableViewportSize(new Dimension(450,400));
+					historyTable.setFillsViewportHeight(true);
+					historyTable.setEnabled(false);
+					historyTable.setBounds(50,50,450,400);
+					historyScroll = new JScrollPane();
+					historyScroll.setBounds(50,50,450,400);
+					historyScroll.setViewportView(historyTable);
+					historyPanel.add(historyScroll);
+				} else {
+					JOptionPane.showMessageDialog(null, "no records found");
+					exportButton.setVisible(false);
+				}
+			} else if (historyOption.getSelectedItem().toString().equals("Sold Butchered")) {
+				ResultSet rs = sqlstat.executeQuery("SELECT COUNT(*) FROM soldpigs WHERE sold_month = " + monthToInt(historyMonth.getSelectedItem().toString()) + " AND sold_year = " + Integer.parseInt(historyYear.getText()) + " AND selling_id = 2;");
+				int noofrows = rs.getInt("COUNT(*)");
+				exportButton.setVisible(true);
+				if (noofrows > 0) {
+					String[] col = {"buyer", "sold date", "price per kilo", "total weight sold", "amount", "ear no.", "butchered date", "weight sold"};
+					
+					rs.close();
+					String[][] rows = new String[noofrows][8];
+					int j = 0;
+					while (j < noofrows) {
+						rs = sqlstat.executeQuery("SELECT * FROM soldpigs p JOIN buyers a, soldbutchereddetails b ON p.butchered_ear_no = b.ear_no WHERE a.buyer_id = p.buyer_id AND sold_month = " + monthToInt(historyMonth.getSelectedItem().toString()) + " AND sold_year = " + Integer.parseInt(historyYear.getText()) + " AND selling_id = 2" + " LIMIT " + j + ", " + (j+40) + ";");
+						
+						while (rs.next()) {
+							rows[j][0] = rs.getString(11) + ", " + rs.getString(12);
+							String date = "" + historyMonth.getItemAt(rs.getInt(3)-1) + " " + rs.getInt(4) + ", " + rs.getInt(5);//tama date
+							rows[j][1] = date;
+							rows[j][2] = "" + rs.getInt(6);// price per kilo
+							rows[j][3] = "" + rs.getInt(7);//tama total weight sold
+							rows[j][4] = "" + rs.getFloat(8);// amount
+							rows[j][5] = "" + rs.getInt(9);//tama ear no.
+							date = "" + historyMonth.getItemAt(rs.getInt(14)-1) + " " + rs.getInt(15) + ", " + rs.getInt(16);//tama butchereddate
+							rows[j][6] = date;
+							rows[j][7] = "" + rs.getFloat(17);//tama weight sold
+							j++;
+						}
+					}
+					model = new DefaultTableModel(rows,col);	
+					historyTable = new JTable(model);
+					historyTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+					historyTable.getColumnModel().getColumn(0).setPreferredWidth(150);
+					historyTable.getColumnModel().getColumn(1).setPreferredWidth(150);
+					historyTable.getColumnModel().getColumn(2).setPreferredWidth(100);
+					historyTable.getColumnModel().getColumn(3).setPreferredWidth(120);
+					historyTable.getColumnModel().getColumn(4).setPreferredWidth(70);
+					historyTable.getColumnModel().getColumn(5).setPreferredWidth(60);
+					historyTable.getColumnModel().getColumn(6).setPreferredWidth(150);
+					historyTable.getColumnModel().getColumn(7).setPreferredWidth(90);
+					historyTable.setPreferredScrollableViewportSize(new Dimension(450,400));
+					historyTable.setFillsViewportHeight(true);
+					historyTable.setEnabled(false);
+					historyTable.setBounds(50,50,450,400);
+					historyScroll = new JScrollPane();
+					historyScroll.setBounds(50,50,450,400);
+					historyScroll.setViewportView(historyTable);
+					historyPanel.add(historyScroll);
+				} else {
+					JOptionPane.showMessageDialog(null, "no records found");
+					exportButton.setVisible(false);
+				}
+			} else if (historyOption.getSelectedItem().toString().equals("Sold Alive")) {
+				ResultSet rs = sqlstat.executeQuery("SELECT COUNT(*) FROM soldpigs p JOIN soldalivedetails a ON p.buyer_id = a.buyer_id AND p.sold_month = a.sold_month AND p.sold_day = a.sold_day AND p.sold_year = a.sold_year WHERE p.sold_month = " + monthToInt(historyMonth.getSelectedItem().toString()) + " AND p.sold_year = " + Integer.parseInt(historyYear.getText()) + " AND selling_id = 1;");
+				int noofrows = rs.getInt("COUNT(*)");
+				exportButton.setVisible(true);
+				if (noofrows > 0) {
+					String[] col = {"buyer", "sold date", "price per kilo", "total weight sold", "amount", "no. of heads", "kilos less", "ear nos. sold"};
+					
+					rs.close();
+					String[][] rows = new String[noofrows][8];
+					int j = 0;
+					while (j < noofrows) {
+						rs = sqlstat.executeQuery("SELECT b.last_name, b.first_name, p.sold_month, p.sold_day, p.sold_year, p.price_per_kilo, p.kilos_total_weight_sold, p.amount, a.no_of_heads, a.kilos_less FROM buyers b, soldpigs p JOIN soldalivedetails a ON p.buyer_id = a.buyer_id AND p.sold_month = a.sold_month AND p.sold_day = a.sold_day AND p.sold_year = a.sold_year WHERE b.buyer_id = p.buyer_id AND p.sold_month = " + monthToInt(historyMonth.getSelectedItem().toString()) + " AND p.sold_year = " + Integer.parseInt(historyYear.getText()) + " AND selling_id = 1" + " LIMIT " + j + ", " + (j+40) + ";");
+						
+						while (rs.next()) {
+							rows[j][0] = rs.getString(1) + ", " + rs.getString(2);
+							String date = "" + historyMonth.getItemAt(rs.getInt(3)-1) + " " + rs.getInt(4) + ", " + rs.getInt(5);
+							rows[j][1] = date;
+							rows[j][2] = "" + rs.getInt(6);
+							rows[j][3] = "" + rs.getFloat(7);
+							rows[j][4] = "" + rs.getFloat(8);
+							rows[j][5] = "" + rs.getInt(9);
+							rows[j][6] = "" + rs.getInt(10);			
+							j++;
+						}
+					}
+					model = new DefaultTableModel(rows,col);	
+					historyTable = new JTable(model);
+					historyTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+					historyTable.getColumnModel().getColumn(0).setPreferredWidth(150);
+					historyTable.getColumnModel().getColumn(1).setPreferredWidth(150);
+					historyTable.getColumnModel().getColumn(2).setPreferredWidth(100);
+					historyTable.getColumnModel().getColumn(3).setPreferredWidth(120);
+					historyTable.getColumnModel().getColumn(4).setPreferredWidth(70);
+					historyTable.getColumnModel().getColumn(5).setPreferredWidth(90);
+					historyTable.getColumnModel().getColumn(6).setPreferredWidth(70);
+					historyTable.getColumnModel().getColumn(7).setPreferredWidth(140);
+					historyTable.setPreferredScrollableViewportSize(new Dimension(450,400));
+					historyTable.setFillsViewportHeight(true);
+					historyTable.setEnabled(false);
+					historyTable.setBounds(50,50,450,400);
+					historyScroll = new JScrollPane();
+					historyScroll.setBounds(50,50,450,400);
+					historyScroll.setViewportView(historyTable);
+					historyPanel.add(historyScroll);
+				} else {
+					JOptionPane.showMessageDialog(null, "no records found");
+					exportButton.setVisible(false);
+				}
+			} else if (historyOption.getSelectedItem().toString().equals("Salaries")) {
+				sqlrs = sqlstat.executeQuery("SELECT COUNT(*) FROM salaries WHERE to_month = " + monthToInt(historyMonth.getSelectedItem().toString()) + " AND to_year = " + Integer.parseInt(historyYear.getText()) + ";");
+				int noofrows = sqlrs.getInt("COUNT(*)");
+				exportButton.setVisible(true);
+				if (noofrows > 0) {
+					String[] col = {"employee", "amount", "date range"};
+					
+					sqlrs.close();
+					String[][] rows = new String[noofrows][3];
+					int j = 0;
+					while (j < noofrows) {
+						sqlrs = sqlstat.executeQuery("SELECT e.last_name, e.first_name, s.amount, s.from_month, s.from_day, s.from_year, s.to_month, s.to_day, s.to_year FROM employees e, salaries s WHERE e.employee_id = s.employee_id AND to_month = " + monthToInt(historyMonth.getSelectedItem().toString()) + " AND to_year = " + Integer.parseInt(historyYear.getText()) + " LIMIT " + j + ", " + (j+40) + ";");
+						
+						while (sqlrs.next()) {
+							rows[j][0] = sqlrs.getString(1) + ", " + sqlrs.getString(2);
+							rows[j][1] = "" + sqlrs.getFloat(3);
+							String date = "" + historyMonth.getItemAt(sqlrs.getInt(4)-1) + " " + sqlrs.getInt(5) + ", " + sqlrs.getInt(6) + " - " + historyMonth.getItemAt(sqlrs.getInt(7)-1) + " " + sqlrs.getInt(8) + ", " + sqlrs.getInt(9);
+							rows[j][2] = date;
+							j++;
+						}
+					}
+					model = new DefaultTableModel(rows,col);	
+					historyTable = new JTable(model);
+					historyTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+					historyTable.getColumnModel().getColumn(0).setPreferredWidth(150);
+					historyTable.getColumnModel().getColumn(1).setPreferredWidth(70);
+					historyTable.getColumnModel().getColumn(2).setPreferredWidth(300);
+					historyTable.setPreferredScrollableViewportSize(new Dimension(450,400));
+					historyTable.setFillsViewportHeight(true);
+					historyTable.setEnabled(false);
+					historyTable.setBounds(50,50,450,400);
+					historyScroll = new JScrollPane();
+					historyScroll.setBounds(50,50,450,400);
+					historyScroll.setViewportView(historyTable);
+					historyPanel.add(historyScroll);
+				} else {
+					JOptionPane.showMessageDialog(null, "no records found");
+					exportButton.setVisible(false);
+				}
+			} else if (historyOption.getSelectedItem().toString().equals("Inventory Expenses")) {
+				sqlrs = sqlstat.executeQuery("SELECT COUNT(*) FROM inventoryexpenses a JOIN inventoryexpensedetails b ON a.delivery_receipt_no = b.delivery_receipt_no WHERE month = " + monthToInt(historyMonth.getSelectedItem().toString()) + " AND year = " + Integer.parseInt(historyYear.getText()) + ";");
+				int noofrows = sqlrs.getInt("COUNT(*)");
+				exportButton.setVisible(true);
+				if (noofrows > 0) {
+					String[] col = {"receipt no.", "item", "quantity", "amount", "date", "total amount"};
+					
+					sqlrs.close();
+					String[][] rows = new String[noofrows][6];
+					int j = 0;
+					while (j < noofrows) {
+						sqlrs = sqlstat.executeQuery("SELECT a.delivery_receipt_no, i.item, b.quantity, b.amount, a.month, a.day, a.year, a.total_amount FROM items i, inventoryexpenses a JOIN inventoryexpensedetails b ON a.delivery_receipt_no = b.delivery_receipt_no WHERE i.item_id =  b.item_id AND month = " + monthToInt(historyMonth.getSelectedItem().toString()) + " AND year = " + Integer.parseInt(historyYear.getText()) + " LIMIT " + j + ", " + (j+40) + ";");
+						
+						while (sqlrs.next()) {
+							rows[j][0] = "" + sqlrs.getInt(1);
+							rows[j][1] = sqlrs.getString(2);
+							rows[j][2] = "" + sqlrs.getInt(3);
+							rows[j][3] = "" + sqlrs.getFloat(4);
+							String date = "" + historyMonth.getItemAt(sqlrs.getInt(5)-1) + " " + sqlrs.getInt(6) + ", " + sqlrs.getInt(7);
+							rows[j][4] = date;
+							rows[j][5] = "" + sqlrs.getFloat(8);
+							j++;
+						}
+					}
+					model = new DefaultTableModel(rows,col);	
+					historyTable = new JTable(model);
+					historyTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+					historyTable.getColumnModel().getColumn(0).setPreferredWidth(90);
+					historyTable.getColumnModel().getColumn(1).setPreferredWidth(250);
+					historyTable.getColumnModel().getColumn(2).setPreferredWidth(70);
+					historyTable.getColumnModel().getColumn(3).setPreferredWidth(60);
+					historyTable.getColumnModel().getColumn(4).setPreferredWidth(150);
+					historyTable.getColumnModel().getColumn(5).setPreferredWidth(100);
+					historyTable.setPreferredScrollableViewportSize(new Dimension(450,400));
+					historyTable.setFillsViewportHeight(true);
+					historyTable.setEnabled(false);
+					historyTable.setBounds(50,50,450,400);
+					historyScroll = new JScrollPane();
+					historyScroll.setBounds(50,50,450,400);
+					historyScroll.setViewportView(historyTable);
+					historyPanel.add(historyScroll);
+				} else {
+					JOptionPane.showMessageDialog(null, "no records found");
+					exportButton.setVisible(false);
+				}
+			} else if (historyOption.getSelectedItem().toString().equals("Misc. Expenses")) {
+				sqlrs = sqlstat.executeQuery("SELECT COUNT(*) FROM micellaneousexpenses WHERE month = " + monthToInt(historyMonth.getSelectedItem().toString()) + " AND year = " + Integer.parseInt(historyYear.getText()) + ";");
+				int noofrows = sqlrs.getInt("COUNT(*)");
+				exportButton.setVisible(true);
+				if (noofrows > 0) {
+					String[] col = {"date", "item", "amount", "notes"};
+					
+					sqlrs.close();
+					String[][] rows = new String[noofrows][4];
+					int j = 0;
+					while (j < noofrows) {
+						sqlrs = sqlstat.executeQuery("SELECT m.month, m.day, m.year, i.item, m.amount, m.notes FROM items i, micellaneousexpenses m WHERE i.item_id = m.item_id AND month = " + monthToInt(historyMonth.getSelectedItem().toString()) + " AND year = " + Integer.parseInt(historyYear.getText()) + " LIMIT " + j + ", " + (j+40) + ";");
+						while (sqlrs.next()) {
+							String date = "" + historyMonth.getItemAt(sqlrs.getInt(1)-1) + " " + sqlrs.getInt(2) + ", " + sqlrs.getInt(3);
+							rows[j][0] = date;
+							rows[j][1] = sqlrs.getString(4);
+							rows[j][2] = "" + sqlrs.getFloat(5);
+							rows[j][3] = sqlrs.getString(6);
+							j++;
+						}
+					}
+					model = new DefaultTableModel(rows,col);	
+					historyTable = new JTable(model);
+					historyTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+					historyTable.getColumnModel().getColumn(0).setPreferredWidth(150);
+					historyTable.getColumnModel().getColumn(1).setPreferredWidth(250);
+					historyTable.getColumnModel().getColumn(2).setPreferredWidth(70);
+					historyTable.getColumnModel().getColumn(3).setPreferredWidth(150);
+					historyTable.setPreferredScrollableViewportSize(new Dimension(450,400));
+					historyTable.setFillsViewportHeight(true);
+					historyTable.setEnabled(false);
+					historyTable.setBounds(50,50,450,400);
+					historyScroll = new JScrollPane();
+					historyScroll.setBounds(50,50,450,400);
+					historyScroll.setViewportView(historyTable);
+					historyPanel.add(historyScroll);
+				} else {
+					JOptionPane.showMessageDialog(null, "no records found");
+					exportButton.setVisible(false);
+				}
+			} else if (historyOption.getSelectedItem().toString().equals("pigs")) {
+				sqlrs = sqlstat.executeQuery("SELECT COUNT(*) FROM pigs");
+				int noofrows = sqlrs.getInt("COUNT(*)");
+				exportButton.setVisible(true);
+				if (noofrows > 0) {
+					String[] col = {"ear no.", "type", "date added", "date died", "building no.", "employee-in-charge", "cause of death/remarks"};
+					sqlrs.close();
+					String[][] rows = new String[noofrows][7];
+					int j = 0;
+					while (j < noofrows) {
+						ResultSet rs = sqlstat.executeQuery("SELECT ear_no, pig_id, month_added, day_added, year_added, month_died, day_died, year_died, building_no, employee_id, cause_of_death_remarks FROM pigs LIMIT " + j + ", " + (j+40) + ";");
+						while (rs.next()) {
+							rows[j][0] = "" + rs.getInt(1);
+							if (rs.getInt(2) == 1) {
+								rows[j][1] = "Boar";
+							} else if (rs.getInt(2) == 2) {
+								rows[j][1] = "Sow";
+							} else if (rs.getInt(2) == 3) {
+								rows[j][1] = "Finisher";
+							}
+							String date = "" + historyMonth.getItemAt(rs.getInt(3)-1) + " " + rs.getInt(4) + ", " + rs.getInt(5);
+							rows[j][2] = date;
+							if (rs.getInt(6) != 0) {
+								date = "" + historyMonth.getItemAt(rs.getInt(6)-1) + " " + rs.getInt(7) + ", " + rs.getInt(8);
+								rows[j][3] = date;
+								rows[j][4] = "" + sqlrs.getInt(9);
+								rows[j][6] = "" + rs.getString(11);
+								if (rs.getInt(10) != 0) {
+									rows[j][5] = getEmployeeName(rs.getInt(10));	
+								} else {
+									rows[j][5] = "";
+								}
+							} else {
+								rows[j][3] = "";
+								rows[j][4] = "";
+								rows[j][5] = "";
+								rows[j][6] = "";
+							}		
+							j++;
+						}
+					}
+					model = new DefaultTableModel(rows,col);	
+					historyTable = new JTable(model);
+					historyTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+					historyTable.getColumnModel().getColumn(0).setPreferredWidth(70);
+					historyTable.getColumnModel().getColumn(1).setPreferredWidth(80);
+					historyTable.getColumnModel().getColumn(2).setPreferredWidth(150);
+					historyTable.getColumnModel().getColumn(3).setPreferredWidth(150);
+					historyTable.getColumnModel().getColumn(4).setPreferredWidth(90);
+					historyTable.getColumnModel().getColumn(5).setPreferredWidth(150);
+					historyTable.getColumnModel().getColumn(6).setPreferredWidth(170);
+					historyTable.setPreferredScrollableViewportSize(new Dimension(450,400));
+					historyTable.setFillsViewportHeight(true);
+					historyTable.setEnabled(false);
+					historyTable.setBounds(50,50,450,400);
+					historyScroll = new JScrollPane();
+					historyScroll.setBounds(50,50,450,400);
+					historyScroll.setViewportView(historyTable);
+					historyPanel.add(historyScroll);
+				} else {
+					JOptionPane.showMessageDialog(null, "no records found");
+					exportButton.setVisible(false);
+				}
+			} else if (historyOption.getSelectedItem().toString().equals("employees")) {
+				sqlrs = sqlstat.executeQuery("SELECT COUNT(*) FROM employees");
+				int noofrows = sqlrs.getInt("COUNT(*)");
+				exportButton.setVisible(true);
+				if (noofrows > 0) {
+					String[] col = {"last name", "first name"};
+					sqlrs.close();
+					String[][] rows = new String[noofrows][2];
+					int j = 0;
+					while (j < noofrows) {
+						ResultSet rs = sqlstat.executeQuery("SELECT last_name, first_name FROM employees" + " LIMIT " + j + ", " + (j+40) + ";");
+						
+						while (rs.next()) {
+							rows[j][0] = rs.getString(1);
+							rows[j][1] = rs.getString(2);
+							j++;
+						}
+					}
+					model = new DefaultTableModel(rows,col);	
+					historyTable = new JTable(model);
+					historyTable.getColumnModel().getColumn(0).setPreferredWidth(70);
+					historyTable.getColumnModel().getColumn(1).setPreferredWidth(70);
+					historyTable.setPreferredScrollableViewportSize(new Dimension(450,400));
+					historyTable.setFillsViewportHeight(true);
+					historyTable.setEnabled(false);
+					historyTable.setBounds(50,50,450,400);
+					historyScroll = new JScrollPane();
+					historyScroll.setBounds(50,50,450,400);
+					historyScroll.setViewportView(historyTable);
+					historyPanel.add(historyScroll);
+				} else {
+					JOptionPane.showMessageDialog(null, "no records found");
+					exportButton.setVisible(false);
+				}
+			} else if (historyOption.getSelectedItem().toString().equals("items")) {
+				sqlrs = sqlstat.executeQuery("SELECT COUNT(*) FROM items");
+				int noofrows = sqlrs.getInt("COUNT(*)");
+				exportButton.setVisible(true);
+				if (noofrows > 0) {
+					String[] col = {"item name"};
+					sqlrs.close();
+					String[][] rows = new String[noofrows][1];
+					int j = 0;
+					while (j < noofrows) {
+						ResultSet rs = sqlstat.executeQuery("SELECT item FROM items" + " LIMIT " + j + ", " + (j+40) + ";");
+						
+						while (rs.next()) {
+							rows[j][0] = rs.getString(1);
+							j++;
+						}
+					}
+					model = new DefaultTableModel(rows,col);	
+					historyTable = new JTable(model);
+					historyTable.getColumnModel().getColumn(0).setPreferredWidth(70);
+					historyTable.setPreferredScrollableViewportSize(new Dimension(450,400));
+					historyTable.setFillsViewportHeight(true);
+					historyTable.setEnabled(false);
+					historyTable.setBounds(50,50,450,400);
+					historyScroll = new JScrollPane();
+					historyScroll.setBounds(50,50,450,400);
+					historyScroll.setViewportView(historyTable);
+					historyPanel.add(historyScroll);
+				} else {
+					JOptionPane.showMessageDialog(null, "no records found");
+					exportButton.setVisible(false);
+				}
+			} else if (historyOption.getSelectedItem().toString().equals("buyers")) {
+				sqlrs = sqlstat.executeQuery("SELECT COUNT(*) FROM buyers");
+				int noofrows = sqlrs.getInt("COUNT(*)");
+				exportButton.setVisible(true);
+				if (noofrows > 0) {
+					String[] col = {"last name", "first name"};
+					sqlrs.close();
+					String[][] rows = new String[noofrows][2];
+					int j = 0;
+					while (j < noofrows) {
+						ResultSet rs = sqlstat.executeQuery("SELECT last_name, first_name FROM buyers" + " LIMIT " + j + ", " + (j+40) + ";");
+						
+						while (rs.next()) {
+							rows[j][0] = rs.getString(1);
+							rows[j][1] = rs.getString(2);
+							j++;
+						}
+					}
+					model = new DefaultTableModel(rows,col);	
+					historyTable = new JTable(model);
+					historyTable.getColumnModel().getColumn(0).setPreferredWidth(70);
+					historyTable.getColumnModel().getColumn(1).setPreferredWidth(70);
+					historyTable.setPreferredScrollableViewportSize(new Dimension(450,400));
+					historyTable.setFillsViewportHeight(true);
+					historyTable.setEnabled(false);
+					historyTable.setBounds(50,50,450,400);
+					historyScroll = new JScrollPane();
+					historyScroll.setBounds(50,50,450,400);
+					historyScroll.setViewportView(historyTable);
+					historyPanel.add(historyScroll);
+				} else {
+					JOptionPane.showMessageDialog(null, "no records found");
+					exportButton.setVisible(false);
+				}
+			}
+			sqlrs.close();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}	
 	}
+	
     
     /**
      * This method removes the present panel on the right
      */
     private void clearPanels() {
-    	if (status == 2) {
+		if (status == 1) {
+			remove(homePanel);
+		} else if (status == 2) {
     		remove(breedingPanel);
     	} else if (status == 3) {
     		remove(farrowingPanel);	
@@ -2398,10 +3852,13 @@ public class Home extends JFrame implements ActionListener{
      */
     private void nav1ActionPerformed(ActionEvent evt) {
     	clearPanels();
+		this.homePanel.removeAll();
+		homeComponents();
     	status = 1;
-    	titleLabel.setText("                                             Home");
+    	titleLabel.setText("                                             ");
         validate();
         repaint();
+        clearAll();
     }
     /**
      * When the add breeding item is pressed
@@ -2413,7 +3870,8 @@ public class Home extends JFrame implements ActionListener{
     	status = 2;
     	titleLabel.setText("                                 Add Breeding Item");
         validate();
-        repaint();    	
+        repaint();   
+        clearAll();
     }
     /**
      * When the add farrowing item is pressed
@@ -2426,6 +3884,7 @@ public class Home extends JFrame implements ActionListener{
     	titleLabel.setText("                              Add Farrowing Item");
         validate();
         repaint();    
+        clearAll();
     }
     /**
      * When the add mortality item is pressed
@@ -2438,6 +3897,7 @@ public class Home extends JFrame implements ActionListener{
     	titleLabel.setText("                                 Add Mortality Item");
         validate();
         repaint();    
+        clearAll();
     }
     /**
      * When the add inventory item is pressed
@@ -2446,10 +3906,15 @@ public class Home extends JFrame implements ActionListener{
     	clearPanels();    
     	this.inventoryPanel.removeAll();
     	inventoryComponents();
+    	this.inventoryMonths.setVisible(false);
+    	this.inventoryDays.setVisible(false);
+    	this.inventoryYear.setVisible(false);
+    	this.inventoryDateLabel.setVisible(false);
     	status = 5;
         titleLabel.setText("                              Add Inventory Item");
         validate();
-        repaint();    	
+        repaint(); 
+        clearAll();
     }
     /**
      * When the add finisher sales item is pressed
@@ -2458,10 +3923,13 @@ public class Home extends JFrame implements ActionListener{
     	clearPanels();
     	this.finisherPanel.removeAll();
     	finisherComponents();
+    	this.finisherAmountLabel.setVisible(false);
+    	this.finisherAmountText.setVisible(false);
     	status = 6;
     	titleLabel.setText("                            Add Finisher Sales Item");
         validate();
         repaint();    
+        clearAll();
     }
     /**
      * When the add butchered sales item is pressed
@@ -2470,10 +3938,14 @@ public class Home extends JFrame implements ActionListener{
     	clearPanels();
     	this.butcheredPanel.removeAll();
     	butcheredComponents();
+    	this.butcheredAmountLabel.setVisible(false);
+    	this.butcheredAmountText.setVisible(false);
+    	this.butcheredPhp2Label.setVisible(false);
     	status = 7;
     	titleLabel.setText("                            Add Butchered Sales Item");
         validate();
         repaint();    
+        clearAll();
     }
     /**
      * When the add salaries expenses item is pressed
@@ -2486,18 +3958,20 @@ public class Home extends JFrame implements ActionListener{
     	titleLabel.setText("                            Add Salaries Expenses Item");
         validate();
         repaint();    
+        clearAll();
     }
     /**
      * When the add miscellaneous item is pressed
      */
     private void nav9ActionPerformed(ActionEvent evt) {
     	clearPanels();
-    	this.salariesPanel.removeAll();
+    	this.micellaneousPanel.removeAll();
     	micellaneousComponents();
     	status = 9;
     	titleLabel.setText("                       Add Miscellaneous Expense Item");
         validate();
-        repaint();    
+        repaint();  
+        clearAll();
     }
     /**
      * When the summary is pressed
@@ -2510,6 +3984,7 @@ public class Home extends JFrame implements ActionListener{
     	titleLabel.setText("                                           Summary");
         validate();
         repaint();    
+        clearAll();
     }
     /**
      * When the add employee, buyer, or item is pressed
@@ -2522,16 +3997,21 @@ public class Home extends JFrame implements ActionListener{
     	titleLabel.setText("                   Add Employees, Buyer, Items or Pigs");
         validate();
         repaint();    
+        clearAll();
     }
-	
+	/**
+	 * When the show history button is pressed
+	 */
 	private void nav12ActionPerformed(ActionEvent evt) {
     	clearPanels();
-    	this.addPanel.removeAll();
+    	this.historyPanel.removeAll();
+    	historyOption.setSelectedIndex(0);
     	historyComponents();
     	status = 12;
     	titleLabel.setText("                                           History");
         validate();
         repaint();    
+        clearAll();
     }
     
 	/**
@@ -2552,6 +4032,16 @@ public class Home extends JFrame implements ActionListener{
 		boolean alive = true;
 		//not finished
 		return alive;
+	}
+	
+	/**
+	 * checks if the receipt no. is already in the database
+	 */
+	private boolean ifReceiptExists(int receiptno) throws SQLException {
+		sqlrs = sqlstat.executeQuery("SELECT * FROM inventoryexpenses WHERE delivery_receipt_no = " + receiptno + ";");
+		boolean exists = !sqlrs.isClosed();
+		sqlrs.close();
+		return exists;
 	}
 	
 	/**
@@ -2606,9 +4096,44 @@ public class Home extends JFrame implements ActionListener{
 	}
 	
 	/**
+	 * Gets the specified column from the itemexpenses table of the specified receiptno
+	 */
+	private int getReceiptDetail(int receiptno, int columnno) throws SQLException {
+		switch (columnno) {
+			case 1:
+				sqlrs = sqlstat.executeQuery("SELECT month FROM inventoryexpenses WHERE delivery_receipt_no = " + receiptno + ";");
+				break;
+			case 2:
+				sqlrs = sqlstat.executeQuery("SELECT day FROM inventoryexpenses WHERE delivery_receipt_no = " + receiptno + ";");
+				break;
+			case 3:
+				sqlrs = sqlstat.executeQuery("SELECT year FROM inventoryexpenses WHERE delivery_receipt_no = " + receiptno + ";");
+				break;
+			case 5:
+				sqlrs = sqlstat.executeQuery("SELECT total_amount FROM inventoryexpenses WHERE delivery_receipt_no = " + receiptno + ";");
+				break;
+			default:
+				sqlrs = sqlstat.executeQuery("SELECT delivery_receipt_no FROM inventoryexpenses WHERE delivery_receipt_no = " + receiptno + ";");
+		}
+		int detail = sqlrs.getInt(1);
+		sqlrs.close();
+		return detail;
+	}
+	
+	/**
+	 * gets the name of the employee based on the given employee_id in the employees table of the database
+	 */
+	private String getEmployeeName(int employeeid) throws SQLException {
+		sqlrs = sqlstat.executeQuery("SELECT * from employees WHERE employee_id = " + employeeid + ";");
+		String name = sqlrs.getString("last_name") + ", " + sqlrs.getString("first_name");
+		sqlrs.close();
+		return name;
+	}
+	
+	/**
 	 * gets the employee_id of the specified last name and first name from the employees table
 	 */
-	private int getEmpoyeeId(String name) throws SQLException {
+	private int getEmployeeId(String name) throws SQLException {
 		int ctr = 0;
 		while(name.charAt(ctr) != ',') {
 			ctr++;
@@ -2618,6 +4143,16 @@ public class Home extends JFrame implements ActionListener{
 		int id = sqlrs.getInt(1);
 		sqlrs.close();
 		return id;
+	}
+	
+	/**
+	 * gets the buyer name based on the given buyer_id from the buyers table
+	 */
+	private String getBuyerName(int buyerid) throws SQLException {
+		sqlrs = sqlstat.executeQuery("SELECT * FROM buyers WHERE buyer_id = " + buyerid + ";");
+		String name = sqlrs.getString("last_name") + ", " + sqlrs.getString("first_name");
+		sqlrs.close();
+		return name;
 	}
 	
 	/**
@@ -2636,6 +4171,16 @@ public class Home extends JFrame implements ActionListener{
 	}
 	
 	/**
+	 * gets the item name based on the given item_id from the items table
+	 */
+	private String getItemName(int itemid) throws SQLException {
+		sqlrs = sqlstat.executeQuery("SELECT item FROM items WHERE item_id = " + itemid + ";");
+		String item = sqlrs.getString(1);
+		sqlrs.close();
+		return item;
+	}
+	
+	/**
 	 * gets the item id of the specified item from the items table
 	 */
 	private int getItemId(String name) throws SQLException {
@@ -2646,13 +4191,13 @@ public class Home extends JFrame implements ActionListener{
 	}
 	
 	/**
-	 * removes the row of the pig with the specified earno from the pigs table
+	 * removes the row of the item expense with the specified receiptno from the itemexpeneses table
 	 */
-	private void removePigRow(int earno) throws SQLException{
-		prepPigs = sqlconn.prepareStatement("DELETE FROM pigs WHERE ear_no = ?;");
-		prepPigs.setInt(1, earno);
-		prepPigs.executeUpdate();
-		prepPigs = sqlconn.prepareStatement("insert into pigs values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);");
+	private void removeItemExpenseRow(int receiptno) throws SQLException {
+		prepInventoryExpenses = sqlconn.prepareStatement("DELETE FROM inventoryexpenses WHERE delivery_receipt_no = ?;");
+		prepInventoryExpenses.setInt(1, receiptno);
+		prepInventoryExpenses.executeUpdate();
+		prepInventoryExpenses = sqlconn.prepareStatement("insert into inventoryexpenses values (?, ?, ?, ?, ?);");
 	}
 	
 	
@@ -2681,17 +4226,42 @@ public class Home extends JFrame implements ActionListener{
 						prepBreeding.setInt(3, monthToInt(breedingmonth));
 						prepBreeding.setInt(4, Integer.parseInt(breedingday));
 						prepBreeding.setInt(5, Integer.parseInt(breedingyear));
-						prepBreeding.setInt(6, Integer.parseInt(parity));
-						prepBreeding.setInt(7, monthToInt(farrowingmonth));
-						prepBreeding.setInt(8, Integer.parseInt(farrowingday));
-						prepBreeding.setInt(9, Integer.parseInt(farrowingyear));
+						if (breedingParityText.getText().equals("")) {
+							sqlrs = sqlstat.executeQuery("SELECT COUNT(*) FROM breeding WHERE sow_no =" + sow + ";");
+							prepBreeding.setInt(6, sqlrs.getInt(1));
+							sqlrs.close();
+						} else {
+							prepBreeding.setNull(6, Types.INTEGER);
+						}
+						prepBreeding.setNull(7, Types.INTEGER);
+						prepBreeding.setNull(8, Types.INTEGER);
+						prepBreeding.setNull(9, Types.INTEGER);
 						prepBreeding.setString(10, notes);
-			
-						if (JOptionPane.showConfirmDialog(null, "are you sure you want to add this entry?") == 0){
-							prepBreeding.addBatch();
-							sqlconn.setAutoCommit(false);
-							prepBreeding.executeBatch();
-							sqlconn.setAutoCommit(true);
+						
+						
+						
+						if(!checkDate(monthToInt(breedingmonth),Integer.parseInt(breedingday),Integer.parseInt(breedingyear)))
+						{
+							JOptionPane.showMessageDialog(null, "Input Date/s not Valid.", "Date Error", JOptionPane.ERROR_MESSAGE);
+						}
+						else if(!validateDate(monthToInt(breedingmonth),Integer.parseInt(breedingday),Integer.parseInt(breedingyear)))
+						{
+							JOptionPane.showMessageDialog(null, "Cannot add after present date.", "Date Error", JOptionPane.ERROR_MESSAGE);
+						}
+						else if (JOptionPane.showConfirmDialog(null, "Are you sure you want to add this entry?","Confirmation", JOptionPane.YES_NO_OPTION)  == 0 ){
+							sqlrs = sqlstat.executeQuery("SELECT COUNT(*) FROM breeding WHERE boar_no = " + boar + " AND sow_no = " + sow + " AND farrowing_month IS NULL;");
+							int go = sqlrs.getInt(1);
+							sqlrs.close();
+							
+							if (go <= 0) {
+								prepBreeding.addBatch();
+								sqlconn.setAutoCommit(false);
+								prepBreeding.executeBatch();
+								sqlconn.setAutoCommit(true);
+							} else {
+								sqlrs = sqlstat.executeQuery("SELECT breeding_month, breeding_day, breeding_year FROM breeding WHERE boar_no = " + boar + " AND sow_no = " + sow + " AND farrowing_month IS NULL;");
+								JOptionPane.showMessageDialog(null, "The sow(" + sow + ") hasn't farrowed on breeding date " + breedingBreedingMonths.getItemAt(sqlrs.getInt(1)-1) + " ," + sqlrs.getInt(2) + " " + sqlrs.getInt(3) + " with boar(" + boar + ")", "Double Breeding", JOptionPane.ERROR_MESSAGE);
+							}
 						}
 				} else {
 					if (isABoar(Integer.parseInt(boar))) {
@@ -2708,12 +4278,11 @@ public class Home extends JFrame implements ActionListener{
 				}
 			}
 		} catch (SQLException e) {
-			//e.printStackTrace();
-			JOptionPane.showMessageDialog(null, e.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
+			JOptionPane.showMessageDialog(null, e.getMessage() + "\n the record already exists", "Database Error", JOptionPane.ERROR_MESSAGE);
 		} catch (NumberFormatException e) {
 			JOptionPane.showMessageDialog(null, "Re-check the required inputs", "Input Error", JOptionPane.ERROR_MESSAGE);
 		} catch (Exception e) {
-			e.printStackTrace();
+			//e.printStackTrace();
 		}
     }
     
@@ -2722,37 +4291,104 @@ public class Home extends JFrame implements ActionListener{
      */
     private void farrowingSubmitActionPerformed(ActionEvent evt) {
     	try {
-			String sow = farrowingSowText.getText();			
+			String sow = farrowingSowText.getText();
+			String boar = farrowingBoarText.getText();
 			if (ifPigExists(Integer.parseInt(sow)) && isASow(Integer.parseInt(sow))) {
-				String farrowingmonth = farrowingMonths.getSelectedItem().toString();
-				String farrowingday = farrowingDays.getSelectedItem().toString();
-				String farrowingyear = farrowingYear.getText();
-				String earNo = farrowingEarText.getText();
-				int earNoInt = Integer.parseInt(earNo);
-				String liveBorn = farrowingLiveText.getText();
-				int liveBornInt = Integer.parseInt(liveBorn);
-				String stillBorn = farrowingStillText.getText();
-				String mummified = farrowingMummifiedText.getText();
-				String abnormal = farrowingAbnormalText.getText();
-				String notes = farrowingNotesText.getText();
-				
-				prepFarrowing.setInt(1, Integer.parseInt(sow));
-				prepFarrowing.setInt(2, monthToInt(farrowingmonth));
-				prepFarrowing.setInt(3, Integer.parseInt(farrowingday));
-				prepFarrowing.setInt(4, Integer.parseInt(farrowingyear));
-				prepFarrowing.setInt(5, earNoInt);
-				prepFarrowing.setInt(6, earNoInt + liveBornInt - 1);
-				prepFarrowing.setInt(7, liveBornInt);
-				prepFarrowing.setInt(8, Integer.parseInt(stillBorn));
-				prepFarrowing.setInt(9, Integer.parseInt(mummified));
-				prepFarrowing.setInt(10, Integer.parseInt(abnormal));
-				prepFarrowing.setString(11, notes);
-				
-				if (JOptionPane.showConfirmDialog(null, "are you sure you want to add this entry?") == 0){
-					prepFarrowing.addBatch();
-					sqlconn.setAutoCommit(false);
-					prepFarrowing.executeBatch();
-					sqlconn.setAutoCommit(true);
+				if (ifPigExists(Integer.parseInt(boar)) && isABoar(Integer.parseInt(boar))) {
+					String farrowingmonth = farrowingMonths.getSelectedItem().toString();
+					String farrowingday = farrowingDays.getSelectedItem().toString();
+					String farrowingyear = farrowingYear.getText();
+					String earNo = farrowingEarText.getText();
+					int earNoInt = Integer.parseInt(earNo);
+					String liveBorn = farrowingLiveText.getText();
+					int liveBornInt = Integer.parseInt(liveBorn);
+					String stillBorn = farrowingStillText.getText();
+					String mummified = farrowingMummifiedText.getText();
+					String abnormal = farrowingAbnormalText.getText();
+					String notes = farrowingNotesText.getText();
+					
+					prepFarrowing.setInt(1, Integer.parseInt(sow));
+					prepFarrowing.setInt(2, monthToInt(farrowingmonth));
+					prepFarrowing.setInt(3, Integer.parseInt(farrowingday));
+					prepFarrowing.setInt(4, Integer.parseInt(farrowingyear));
+					prepFarrowing.setInt(5, earNoInt);
+					prepFarrowing.setInt(6, earNoInt + liveBornInt - 1);
+					prepFarrowing.setInt(7, liveBornInt);
+					prepFarrowing.setInt(8, Integer.parseInt(stillBorn));
+					prepFarrowing.setInt(9, Integer.parseInt(mummified));
+					prepFarrowing.setInt(10, Integer.parseInt(abnormal));
+					prepFarrowing.setString(11, notes);
+					
+					sqlrs = sqlstat.executeQuery("SELECT COUNT(*) FROM pigs WHERE ear_no BETWEEN " + earNoInt + " AND " + (liveBornInt-1) + ";");
+					int usedearno = sqlrs.getInt(1);
+					sqlrs.close();
+					
+					if (usedearno == 0) {
+						if(!checkDate(monthToInt(farrowingmonth),Integer.parseInt(farrowingday),Integer.parseInt(farrowingyear)))
+						{
+							JOptionPane.showMessageDialog(null, "Input Date/s not Valid.", "Date Error", JOptionPane.ERROR_MESSAGE);
+						}
+						else if(!validateDate(monthToInt(farrowingmonth),Integer.parseInt(farrowingday),Integer.parseInt(farrowingyear)))
+						{
+							JOptionPane.showMessageDialog(null, "Cannot add after present date.", "Date Error", JOptionPane.ERROR_MESSAGE);
+						}
+						else if (JOptionPane.showConfirmDialog(null, "Are you sure you want to add this entry?","Confirmation", JOptionPane.YES_NO_OPTION)  == 0){				
+							sqlrs = sqlstat.executeQuery("SELECT COUNT(*) FROM breeding WHERE sow_no = " + sow + " AND boar_no = " + boar + " AND farrowing_month IS NULL;");
+							int ctr = sqlrs.getInt(1);
+							sqlrs.close();
+							
+							
+							if (ctr == 1) {
+								sqlrs = sqlstat.executeQuery("SELECT breeding_month, breeding_day, breeding_year FROM breeding WHERE sow_no = " + sow + " AND boar_no = " + boar + " AND farrowing_month IS NULL;");
+								
+								if(dateOrderCheck(
+										new java.util.Date(sqlrs.getInt(3)-1900 ,sqlrs.getInt(1)-1,sqlrs.getInt(2)),
+										new java.util.Date(Integer.parseInt(farrowingyear)-1900,monthToInt(farrowingmonth)-1,Integer.parseInt(farrowingday))))
+										{
+											JOptionPane.showMessageDialog(null, "Farrowing Date must be after Breeding Date(" + farrowingMonths.getItemAt(sqlrs.getInt(1)-1) + " " + sqlrs.getInt(2) + ", " + sqlrs.getInt(3) + ")", "Date Error", JOptionPane.ERROR_MESSAGE);
+											sqlrs.close();
+								} else {
+									sqlrs.close();
+									prepFarrowing.addBatch();
+									sqlconn.setAutoCommit(false);
+									prepFarrowing.executeBatch();
+									sqlconn.setAutoCommit(true);
+									
+									
+									prepBreeding = sqlconn.prepareStatement("UPDATE breeding SET farrowing_month = " + monthToInt(farrowingmonth) + ", farrowing_day = " + Integer.parseInt(farrowingday) + ", farrowing_year = " + Integer.parseInt(farrowingyear) + " WHERE sow_no = " + sow + " AND " + "boar_no = " + boar + " AND farrowing_month IS NULL;");
+									prepBreeding.executeUpdate();
+									prepBreeding = sqlconn.prepareStatement("insert into breeding values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);");
+		
+									for (int i = earNoInt; i < (earNoInt + liveBornInt); i++) {
+										prepPigs.setInt(1, i);
+										prepPigs.setInt(2, 3);
+										prepPigs.setInt(3, monthToInt(farrowingmonth));
+										prepPigs.setInt(4, Integer.parseInt(farrowingday));
+										prepPigs.setInt(5, Integer.parseInt(farrowingyear));
+										prepPigs.setInt(6, 0);
+										prepPigs.setInt(7, 0);
+										prepPigs.setInt(8, 0);
+										prepPigs.setInt(9, 0);
+										prepPigs.setNull(10, Types.VARCHAR);
+										prepPigs.addBatch();
+										sqlconn.setAutoCommit(false);
+										prepPigs.executeBatch();
+										sqlconn.setAutoCommit(true);			
+									}
+								}
+							} else {
+								JOptionPane.showMessageDialog(null, "The sow number and boar number hasn't been bred", "Breeding mismatch", JOptionPane.ERROR_MESSAGE);
+							}
+						}
+					} else {
+						JOptionPane.showMessageDialog(null, "The ear numbers assigned are already used", "Reused ear number", JOptionPane.ERROR_MESSAGE);	
+					}
+				} else {
+					if (isABoar(Integer.parseInt(boar))) {
+						JOptionPane.showMessageDialog(null, "Boar number is not in the database. Add it first.", "Missing Ear number", JOptionPane.ERROR_MESSAGE);
+					} else {
+						JOptionPane.showMessageDialog(null, "The ear number entered is not a boar", "Wrong sow number", JOptionPane.ERROR_MESSAGE);					
+					}
 				}
 			} else {
 				if (isASow(Integer.parseInt(sow))) {
@@ -2762,8 +4398,8 @@ public class Home extends JFrame implements ActionListener{
 				}
 			}
 		} catch (SQLException e) {
-			//e.printStackTrace();
-			JOptionPane.showMessageDialog(null, e.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
+			e.printStackTrace();
+			JOptionPane.showMessageDialog(null, e.getMessage() + "\n the record already exists", "Database Error", JOptionPane.ERROR_MESSAGE);
 		} catch (NumberFormatException e) {
 			JOptionPane.showMessageDialog(null, "Re-check the required inputs", "Input Error", JOptionPane.ERROR_MESSAGE);
 		} catch (Exception e) {
@@ -2786,45 +4422,32 @@ public class Home extends JFrame implements ActionListener{
 			
 			if (ifPigExists(Integer.parseInt(pig))) {
 				int pigno = Integer.parseInt(pig);
-				prepPigs.setInt(1, Integer.parseInt(pig));
-				prepPigs.setInt(2, getPigDetail(pigno, 2));
-				int pigid = getPigDetail(pigno, 2);
-				prepPigs.setInt(3, getPigDetail(pigno, 3));
-				int monthadded = getPigDetail(pigno, 3);
-				prepPigs.setInt(4, getPigDetail(pigno, 4));
-				int dayadded = getPigDetail(pigno, 4);
-				prepPigs.setInt(5, getPigDetail(pigno, 5));
-				int yearadded = getPigDetail(pigno, 5);
-				
-				if (JOptionPane.showConfirmDialog(null, "are you sure you want to add this entry?") == 0){
-					removePigRow(pigno);
-					prepPigs.setInt(1, Integer.parseInt(pig));
-					prepPigs.setInt(2, pigid);
-					prepPigs.setInt(3, monthadded);
-					prepPigs.setInt(4, dayadded);
-					prepPigs.setInt(5, yearadded);
-					prepPigs.setInt(6, Integer.parseInt(buildingno));
-					prepPigs.setInt(7, getEmpoyeeId(employee));
-					prepPigs.setInt(8, monthToInt(mortalitymonth));
-					prepPigs.setInt(9, Integer.parseInt(mortalityday));
-					prepPigs.setInt(10, Integer.parseInt(mortalityyear));
-					prepPigs.setString(11, cause);
-					
-					prepPigs.addBatch();
-					sqlconn.setAutoCommit(false);
-					prepPigs.executeBatch();
-					sqlconn.setAutoCommit(true);
+				if (ifPigIsAlive(pigno)) {		
+					if(!checkDate(monthToInt(mortalitymonth),Integer.parseInt(mortalityday),Integer.parseInt(mortalityyear)))
+					{
+						JOptionPane.showMessageDialog(null, "Input Date/s not Valid.", "Date Error", JOptionPane.ERROR_MESSAGE);
+					}
+					else if(!validateDate(monthToInt(mortalitymonth),Integer.parseInt(mortalityday),Integer.parseInt(mortalityyear)))
+					{
+						JOptionPane.showMessageDialog(null, "Cannot add after present date.", "Date Error", JOptionPane.ERROR_MESSAGE);
+					}
+					else if (JOptionPane.showConfirmDialog(null, "Are you sure you want to add this entry?","Confirmation", JOptionPane.YES_NO_OPTION)  == 0){
+						prepPigs = sqlconn.prepareStatement("UPDATE pigs SET building_no = " + Integer.parseInt(buildingno) + ", employee_id = " + getEmployeeId(employee) + ", month_died = " + monthToInt(mortalitymonth) + ", day_died = " + Integer.parseInt(mortalityday) + ", year_died = " + Integer.parseInt(mortalityyear) + ", cause_of_death_remarks = \""+ cause + "\" WHERE ear_no = " + pigno + ";");
+						prepPigs.executeUpdate();
+						prepPigs = sqlconn.prepareStatement("insert into pigs values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);");
+					}
+				} else {
+					JOptionPane.showMessageDialog(null, "Ear number given is not alive", "Dead pig Error", JOptionPane.ERROR_MESSAGE);
 				}
 			} else {
 				JOptionPane.showMessageDialog(null, "Ear number is not in the database. Add it first.", "Missing Ear number", JOptionPane.ERROR_MESSAGE);
 			}
 		} catch (SQLException e) {
-			//e.printStackTrace();
-			JOptionPane.showMessageDialog(null, e.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
+			JOptionPane.showMessageDialog(null, e.getMessage() + "\n the record already exists", "Database Error", JOptionPane.ERROR_MESSAGE);
 		} catch (NumberFormatException e) {
 			JOptionPane.showMessageDialog(null, "Re-check the required inputs", "Input Error", JOptionPane.ERROR_MESSAGE);
 		} catch (Exception e) {
-			e.printStackTrace();
+			//e.printStackTrace();
 		}
     }
     
@@ -2832,42 +4455,207 @@ public class Home extends JFrame implements ActionListener{
      * When a inventory item is submitted
      */
     private void inventorySubmitActionPerformed(ActionEvent evt) {
-    	//fix GUI first implement new add Recieptno. option??
-    	//make receipt no. a JComboBox
-    	/**
-			String inventorymonth = inventoryMonths.getSelectedItem().toString();
-			String inventoryday = inventoryDays.getSelectedItem().toString();
-			String inventoryyear = inventoryYear.getText();
-			String recieptno = inventoryReceiptText.getText();
+    	try {
+			String receiptno = inventoryReceiptText.getText();
+			String amount = inventoryAmountText.getText();
+			int receipt = Integer.parseInt(receiptno);
 			String item = inventoryItemBox.getSelectedItem().toString();
 			String quantity = inventoryQuantityText.getText();
-			String amount = inventoryAmountText.getText();
-		*/
+			
+			if (Integer.parseInt(quantity) <= 0) {
+				JOptionPane.showMessageDialog(null, "quantity cannot be less than 1");
+				Integer.parseInt("");
+			}
+			else if(Double.parseDouble(amount) <= 0)
+			{
+				JOptionPane.showMessageDialog(null, "amount cannot be less than or equal to 0");
+				Integer.parseInt("");
+			}
+			
+			if (ifReceiptExists(receipt)) {
+				if (JOptionPane.showConfirmDialog(null, "Are you sure you want to add this entry?","Confirmation", JOptionPane.YES_NO_OPTION)  == 0) {
+					prepInventoryExpenseDetails.setInt(1, receipt);
+					prepInventoryExpenseDetails.setInt(2, getItemId(item));
+					prepInventoryExpenseDetails.setInt(3, Integer.parseInt(quantity));
+					prepInventoryExpenseDetails.setDouble(4, Double.parseDouble(amount));
+					prepInventoryExpenseDetails.addBatch();
+					sqlconn.setAutoCommit(false);
+					prepInventoryExpenseDetails.executeBatch();
+					sqlconn.setAutoCommit(true);
+					
+					int month = getReceiptDetail(receipt, 1);
+					int day = getReceiptDetail(receipt, 2);
+					int year = getReceiptDetail(receipt, 3);
+					int amount2 = getReceiptDetail(receipt, 5);
+					double totalamount = (Double.parseDouble(amount)*Integer.parseInt(quantity)) + amount2;
+					removeItemExpenseRow(receipt);
+					prepInventoryExpenses.setInt(1, month);
+					prepInventoryExpenses.setInt(2, day);
+					prepInventoryExpenses.setInt(3, year);
+					prepInventoryExpenses.setInt(4, receipt);
+					prepInventoryExpenses.setDouble(5, totalamount);
+					prepInventoryExpenses.addBatch();
+					sqlconn.setAutoCommit(false);
+					prepInventoryExpenses.executeBatch();
+					sqlconn.setAutoCommit(true);
+				}
+			} else {
+				JOptionPane.showMessageDialog(null, "Receipt number is not in the database. Add it first.", "Missing Receipt number", JOptionPane.ERROR_MESSAGE);
+			}
+    	} catch (SQLException e) {
+			JOptionPane.showMessageDialog(null, e.getMessage() + "\n the record already exists", "Database Error", JOptionPane.ERROR_MESSAGE);
+		} catch (NumberFormatException e) {
+			JOptionPane.showMessageDialog(null, "Re-check the required inputs", "Input Error", JOptionPane.ERROR_MESSAGE);
+		} catch (Exception e) {
+			//e.printStackTrace();
+		}
     }
     
     /**
      * When a finisher item is submitted
      */
     private void finisherSubmitActionPerformed(ActionEvent evt) {
-    	//input into two different tables (to reduce redundancy)
-    	//use both this.prepSoldPigs this.prepSoldAliveDetails
-    	/**
-    		String sadbuyer = finisherBuyerBox.getSelectedItem().toString();
-			String sadmonth = breedingBreedingMonths.getSelectedItem().toString();
-			String sadday = breedingBreedingDays.getSelectedItem().toString();
-			String sadyear = breedingBreedingYear.getText();
-			String sadnoofheads = breedingSowText.getText();
-			String sadkilosless = breedingParityText.getText();
-			String sadearnossold = breedingBoarText.getText();
-		*/
+    	try {
+    		String buyer = finisherBuyerBox.getSelectedItem().toString();
+			String month = finisherMonths.getSelectedItem().toString();
+			String day = finisherDays.getSelectedItem().toString();
+			String year = finisherYear.getText();
+			String sadnoofheads = finisherHeadsText.getText();
+			String sadkilosless = finisherKilosText.getText();
+			String sadearnossold = finisherEarsText.getText();
+
+			String perkilo = finisherPriceText.getText();
+			String weight = this.finisherWeightText.getText();
+			double totalamount = (Double.parseDouble(weight) - Double.parseDouble(sadkilosless)) * (Double.parseDouble(perkilo));
+			if ((Double.parseDouble(perkilo) <= 0) || (Double.parseDouble(weight) <= 0)) {
+				JOptionPane.showMessageDialog(null, "weight cannot be less than 1");
+				Integer.parseInt("");
+			}
+			
+			if(!checkDate(monthToInt(month),Integer.parseInt(day),Integer.parseInt(year)))
+				{
+					JOptionPane.showMessageDialog(null, "Input Date/s not Valid.", "Date Error", JOptionPane.ERROR_MESSAGE);
+				}
+				else if(!validateDate(monthToInt(month),Integer.parseInt(day),Integer.parseInt(year)))
+				{
+					JOptionPane.showMessageDialog(null, "Cannot add after present date.", "Date Error", JOptionPane.ERROR_MESSAGE);
+				}
+				else if (JOptionPane.showConfirmDialog(null, "Are you sure you want to add this entry?","Confirmation", JOptionPane.YES_NO_OPTION) == 0) {
+				prepSoldPigs.setInt(1, getBuyerId(buyer));
+				prepSoldPigs.setInt(2, 1);
+				prepSoldPigs.setInt(3, monthToInt(month));
+				prepSoldPigs.setInt(4, Integer.parseInt(day));
+				prepSoldPigs.setInt(5, Integer.parseInt(year));
+				prepSoldPigs.setDouble(6, Double.parseDouble(perkilo));
+				prepSoldPigs.setDouble(7, Double.parseDouble(weight));
+				prepSoldPigs.setDouble(8, totalamount);
+				prepSoldPigs.setNull(9, Types.INTEGER);
+				prepSoldPigs.addBatch();
+				sqlconn.setAutoCommit(false);
+				prepSoldPigs.executeBatch();
+				sqlconn.setAutoCommit(true);
+				
+				prepSoldAliveDetails.setInt(1, getBuyerId(buyer));
+				prepSoldAliveDetails.setInt(2, monthToInt(month));
+				prepSoldAliveDetails.setInt(3, Integer.parseInt(day));
+				prepSoldAliveDetails.setInt(4, Integer.parseInt(year));
+				prepSoldAliveDetails.setInt(5, Integer.parseInt(sadnoofheads));
+				prepSoldAliveDetails.setDouble(6, Double.parseDouble(sadkilosless));
+				prepSoldAliveDetails.setString(7, sadearnossold);
+				prepSoldAliveDetails.addBatch();
+				sqlconn.setAutoCommit(false);
+				prepSoldAliveDetails.executeBatch();
+				sqlconn.setAutoCommit(true);
+			}
+    	} catch (SQLException e) {
+			JOptionPane.showMessageDialog(null, e.getMessage() + "\n the record already exists", "Database Error", JOptionPane.ERROR_MESSAGE);
+		} catch (NumberFormatException e) {
+			JOptionPane.showMessageDialog(null, "Re-check the required inputs", "Input Error", JOptionPane.ERROR_MESSAGE);
+		} catch (Exception e) {
+			//e.printStackTrace();
+		}
     }
     
     /**
      * When a butchered item is submitted
      */
     private void butcheredSubmitActionPerformed(ActionEvent evt) {
-    	//input into two different tables (to reduce redundancy)
-    	//use both this.prepSoldPigs this.prepSoldButcheredDetails
+    	try {
+    		String earno = butcheredEarText.getText();
+			String butmonth = butcheredButcherMonths.getSelectedItem().toString();
+			String butday = butcheredButcherDays.getSelectedItem().toString();
+			String butyear = butcheredButcherYear.getText();
+			String butweight = butcheredWeight1Text.getText();
+			
+			if (ifPigExists(Integer.parseInt(earno))) {
+				String buyer = butcheredBuyerBox.getSelectedItem().toString();
+				String soldmonth = butcheredSoldMonths.getSelectedItem().toString();
+				String soldday = butcheredSoldDays.getSelectedItem().toString();
+				String soldyear = butcheredSoldYear.getText();
+				String perkilo = butcheredPriceText.getText();
+				String weight = butcheredWeight2Text.getText();
+				double totalamount = (Double.parseDouble(weight)) * (Double.parseDouble(perkilo));
+				
+				if ((Double.parseDouble(perkilo) <= 0) || (Double.parseDouble(weight) <= 0) || (Double.parseDouble(butweight) <= 0)) {
+					JOptionPane.showMessageDialog(null, "weight cannot be less than 1");
+					Integer.parseInt("");
+				}
+				
+				if(!checkDate(monthToInt(soldmonth),Integer.parseInt(soldday),Integer.parseInt(soldyear)) || !checkDate(monthToInt(butmonth),Integer.parseInt(butday),Integer.parseInt(butyear)))
+				{
+					JOptionPane.showMessageDialog(null, "Input Date/s not Valid.", "Date Error", JOptionPane.ERROR_MESSAGE);
+				}
+				else if(!validateDate(monthToInt(soldmonth),Integer.parseInt(soldday),Integer.parseInt(soldyear)) || !validateDate(monthToInt(butmonth),Integer.parseInt(butday),Integer.parseInt(butyear)))
+				{
+					JOptionPane.showMessageDialog(null, "Cannot add after present date.", "Date Error", JOptionPane.ERROR_MESSAGE);
+				}
+				else if (JOptionPane.showConfirmDialog(null, "Are you sure you want to add this entry?","Confirmation", JOptionPane.YES_NO_OPTION)  == 0) {
+					if(dateOrderCheck(
+							new java.util.Date(Integer.parseInt(butyear)-1900 ,monthToInt(butmonth)-1,Integer.parseInt(butday)),
+							new java.util.Date(Integer.parseInt(soldyear)-1900,monthToInt(soldmonth)-1,Integer.parseInt(soldday))))
+							{
+								
+								JOptionPane.showMessageDialog(null, "Sold Date must be after Butchered Date", "Date Error", JOptionPane.ERROR_MESSAGE);
+					} else {
+						prepSoldPigs.setInt(1, getBuyerId(buyer));
+						prepSoldPigs.setInt(2, 2);
+						prepSoldPigs.setInt(3, monthToInt(soldmonth));
+						prepSoldPigs.setInt(4, Integer.parseInt(soldday));
+						prepSoldPigs.setInt(5, Integer.parseInt(soldyear));
+						prepSoldPigs.setDouble(6, Double.parseDouble(perkilo));
+						prepSoldPigs.setDouble(7, Double.parseDouble(weight));
+						prepSoldPigs.setDouble(8, totalamount);
+						prepSoldPigs.setInt(9, Integer.parseInt(earno));
+						prepSoldPigs.addBatch();
+						sqlconn.setAutoCommit(false);
+						prepSoldPigs.executeBatch();
+						sqlconn.setAutoCommit(true);
+						
+						prepSoldButcheredDetails.setInt(1, Integer.parseInt(earno));
+						prepSoldButcheredDetails.setInt(2, monthToInt(butmonth));
+						prepSoldButcheredDetails.setInt(3, Integer.parseInt(butday));
+						prepSoldButcheredDetails.setInt(4, Integer.parseInt(butyear));
+						prepSoldButcheredDetails.setDouble(5, Double.parseDouble(butweight));
+						prepSoldButcheredDetails.addBatch();
+						sqlconn.setAutoCommit(false);
+						prepSoldButcheredDetails.executeBatch();
+						sqlconn.setAutoCommit(true);
+						
+						prepPigs = sqlconn.prepareStatement("UPDATE pigs SET month_died = " + monthToInt(butmonth) + ", day_died = " + Integer.parseInt(butday) + ", year_died = " + Integer.parseInt(butyear) + ", cause_of_death_remarks = \"sold butchered\" WHERE ear_no = " + earno + ";");
+						prepPigs.executeUpdate();
+						prepPigs = sqlconn.prepareStatement("insert into pigs values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);");
+					}
+				}
+    		} else {
+    			JOptionPane.showMessageDialog(null, "Ear number is not in the database. Add it first.", "Missing Ear number", JOptionPane.ERROR_MESSAGE);
+    		}
+    	} catch (SQLException e) {
+			JOptionPane.showMessageDialog(null, e.getMessage() + "\n the record already exists", "Database Error", JOptionPane.ERROR_MESSAGE);
+		} catch (NumberFormatException e) {
+			JOptionPane.showMessageDialog(null, "Re-check the required inputs", "Input Error", JOptionPane.ERROR_MESSAGE);
+		} catch (Exception e) {
+			//e.printStackTrace();
+		}
     }
     
     /**
@@ -2884,9 +4672,29 @@ public class Home extends JFrame implements ActionListener{
 			String today = salariesEndDays.getSelectedItem().toString();
 			String toyear = salariesEndYear.getText();
 			
-			if (JOptionPane.showConfirmDialog(null, "are you sure you want to add this entry?") == 0){
-				prepSalaries.setInt(1, getEmpoyeeId(employee));
-				prepSalaries.setInt(2, Integer.parseInt(amount));
+			if(Double.parseDouble(amount) <= 0)
+			{
+				JOptionPane.showMessageDialog(null, "amount cannot be less than or equal to 0");
+				Integer.parseInt("");
+			}
+			
+			if(!checkDate(monthToInt(frommonth),Integer.parseInt(fromday),Integer.parseInt(fromyear)) || !checkDate(monthToInt(tomonth),Integer.parseInt(today),Integer.parseInt(toyear)))
+				{
+					JOptionPane.showMessageDialog(null, "Input Date/s not Valid.", "Date Error", JOptionPane.ERROR_MESSAGE);
+				}
+				else if(!validateDate(monthToInt(frommonth),Integer.parseInt(fromday),Integer.parseInt(fromyear)) || !validateDate(monthToInt(tomonth),Integer.parseInt(today),Integer.parseInt(toyear)))
+				{
+					JOptionPane.showMessageDialog(null, "Cannot add after current date.", "Date Error", JOptionPane.ERROR_MESSAGE);
+				}
+				else if( dateOrderCheck(
+				new java.util.Date( Integer.parseInt(fromyear)-1900 ,monthToInt(frommonth)-1,Integer.parseInt(fromday)),
+				new java.util.Date(Integer.parseInt(toyear)-1900,monthToInt(tomonth)-1,Integer.parseInt(today))))
+				{
+					JOptionPane.showMessageDialog(null, "End Date must be after Start Date", "Date Error", JOptionPane.ERROR_MESSAGE);
+				}
+				else if (JOptionPane.showConfirmDialog(null, "Are you sure you want to add this entry?","Confirmation", JOptionPane.YES_NO_OPTION)  == 0){
+				prepSalaries.setInt(1, getEmployeeId(employee));
+				prepSalaries.setDouble(2, Double.parseDouble(amount));
 				prepSalaries.setInt(3, monthToInt(frommonth));
 				prepSalaries.setInt(4, Integer.parseInt(fromday));
 				prepSalaries.setInt(5, Integer.parseInt(fromyear));
@@ -2900,12 +4708,11 @@ public class Home extends JFrame implements ActionListener{
 				sqlconn.setAutoCommit(true);
 			}
 		} catch (SQLException e) {
-			//e.printStackTrace();
-			JOptionPane.showMessageDialog(null, e.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
+			JOptionPane.showMessageDialog(null, e.getMessage() + "\n the record already exists", "Database Error", JOptionPane.ERROR_MESSAGE);
 		} catch (NumberFormatException e) {
 			JOptionPane.showMessageDialog(null, "Re-check the required inputs", "Input Error", JOptionPane.ERROR_MESSAGE);
 		} catch (Exception e) {
-			e.printStackTrace();
+			//e.printStackTrace();
 		}
     }
     
@@ -2921,12 +4728,26 @@ public class Home extends JFrame implements ActionListener{
     		String amount = micellaneousAmountText.getText();
     		String notes = micellaneousNotesText.getText();
 			
-			if (JOptionPane.showConfirmDialog(null, "are you sure you want to add this entry?") == 0){
+			if(Double.parseDouble(amount) <= 0)
+			{
+				JOptionPane.showMessageDialog(null, "amount cannot be less than or equal to 0");
+				Integer.parseInt("");
+			}
+			
+			if(!checkDate(monthToInt(month),Integer.parseInt(day),Integer.parseInt(year)))
+				{
+					JOptionPane.showMessageDialog(null, "Input Date/s not Valid.", "Date Error", JOptionPane.ERROR_MESSAGE);
+				}
+				else if(!validateDate(monthToInt(month),Integer.parseInt(day),Integer.parseInt(year)))
+				{
+					JOptionPane.showMessageDialog(null, "Cannot add after present date.", "Date Error", JOptionPane.ERROR_MESSAGE);
+				}
+				else if (JOptionPane.showConfirmDialog(null, "Are you sure you want to add this entry?","Confirmation", JOptionPane.YES_NO_OPTION)  == 0){
 				prepMicellaneousExpenses.setInt(1, monthToInt(month));
 				prepMicellaneousExpenses.setInt(2, Integer.parseInt(day));
 				prepMicellaneousExpenses.setInt(3, Integer.parseInt(year));
 				prepMicellaneousExpenses.setInt(4, getItemId(item));
-				prepMicellaneousExpenses.setInt(5, Integer.parseInt(amount));
+				prepMicellaneousExpenses.setDouble(5, Double.parseDouble(amount));
 				prepMicellaneousExpenses.setString(6, notes);
 				
 				prepMicellaneousExpenses.addBatch();
@@ -2935,12 +4756,11 @@ public class Home extends JFrame implements ActionListener{
 				sqlconn.setAutoCommit(true);
 			}
 		} catch (SQLException e) {
-			//e.printStackTrace();
-			JOptionPane.showMessageDialog(null, e.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
+			JOptionPane.showMessageDialog(null, e.getMessage() + "\n the record already exists", "Database Error", JOptionPane.ERROR_MESSAGE);
 		} catch (NumberFormatException e) {
 			JOptionPane.showMessageDialog(null, "Re-check the required inputs", "Input Error", JOptionPane.ERROR_MESSAGE);
 		} catch (Exception e) {
-			e.printStackTrace();
+			//e.printStackTrace();
 		}
     }
     
@@ -2952,6 +4772,7 @@ public class Home extends JFrame implements ActionListener{
 			String selected = addWhatBox.getSelectedItem() + "";	
 			if (selected.equals("employee")) {
 				String name = addInputText.getText() + addAdditionalText.getText() + "~";
+				name = name.toLowerCase();
 				boolean valid = true;
 				int ctr = 0;
 				while (name.charAt(ctr) != '~') {
@@ -2964,7 +4785,7 @@ public class Home extends JFrame implements ActionListener{
 					prepEmployees.setNull(1, Types.INTEGER);
 					prepEmployees.setString(2, addInputText.getText()); 
 					prepEmployees.setString(3, addAdditionalText.getText());
-					if (JOptionPane.showConfirmDialog(null, "are you sure you want to add this entry?") == 0){
+					if (JOptionPane.showConfirmDialog(null, "Are you sure you want to add this entry?","Confirmation", JOptionPane.YES_NO_OPTION) == 0){
 						prepEmployees.addBatch();
 						sqlconn.setAutoCommit(false);
 						prepEmployees.executeBatch();
@@ -2975,6 +4796,7 @@ public class Home extends JFrame implements ActionListener{
 				}
 			} else if (selected.equals("buyer")) {
 				String name = addInputText.getText() + addAdditionalText.getText() + "~";
+				name = name.toLowerCase();
 				boolean valid = true;
 				int ctr = 0;
 				while (name.charAt(ctr) != '~') {
@@ -2987,7 +4809,7 @@ public class Home extends JFrame implements ActionListener{
 					prepBuyers.setNull(1, Types.INTEGER);
 					prepBuyers.setString(2, addInputText.getText());
 					prepBuyers.setString(3, addAdditionalText.getText());
-					if (JOptionPane.showConfirmDialog(null, "are you sure you want to add this entry?") == 0){
+					if (JOptionPane.showConfirmDialog(null, "Are you sure you want to add this entry?","Confirmation", JOptionPane.YES_NO_OPTION)  == 0){
 						prepBuyers.addBatch();
 						sqlconn.setAutoCommit(false);
 						prepBuyers.executeBatch();
@@ -2998,8 +4820,8 @@ public class Home extends JFrame implements ActionListener{
 				}
 			} else if (selected.equals("item")) {
 				prepItems.setNull(1, Types.INTEGER);
-				prepItems.setString(2, addInputText.getText());
-				if (JOptionPane.showConfirmDialog(null, "are you sure you want to add this entry?") == 0){
+				prepItems.setString(2, addInputText.getText().toLowerCase());
+				if (JOptionPane.showConfirmDialog(null, "Are you sure you want to add this entry?","Confirmation", JOptionPane.YES_NO_OPTION)  == 0){
 					prepItems.addBatch();
 					sqlconn.setAutoCommit(false);
 					prepItems.executeBatch();
@@ -3016,21 +4838,610 @@ public class Home extends JFrame implements ActionListener{
 				prepPigs.setNull(8, Types.INTEGER);
 				prepPigs.setNull(9, Types.INTEGER);
 				prepPigs.setNull(10, Types.VARCHAR);
-				if (JOptionPane.showConfirmDialog(null, "are you sure you want to add this entry?") == 0){
+				if(!checkDate(monthToInt(addAddedMonths.getSelectedItem().toString()),Integer.parseInt(addAddedDays.getSelectedItem().toString()),Integer.parseInt(addAddedYear.getText())))
+						{
+							JOptionPane.showMessageDialog(null, "Input Date/s not Valid.", "Date Error", JOptionPane.ERROR_MESSAGE);
+						}
+						else if(!validateDate(monthToInt(addAddedMonths.getSelectedItem().toString()),Integer.parseInt(addAddedDays.getSelectedItem().toString()),Integer.parseInt(addAddedYear.getText())))
+						{
+							JOptionPane.showMessageDialog(null, "Cannot add after present date.", "Date Error", JOptionPane.ERROR_MESSAGE);
+						}
+						else if (JOptionPane.showConfirmDialog(null, "Are you sure you want to add this entry?","Confirmation", JOptionPane.YES_NO_OPTION)  == 0){
 					prepPigs.addBatch();
 					sqlconn.setAutoCommit(false);
 					prepPigs.executeBatch();
 					sqlconn.setAutoCommit(true);
 				}	
+			} else if (selected.equals("receipt no.")) {
+				prepInventoryExpenses.setInt(1, monthToInt(addAddedMonths.getSelectedItem().toString()));
+				prepInventoryExpenses.setInt(2, Integer.parseInt(addAddedDays.getSelectedItem().toString()));
+				prepInventoryExpenses.setInt(3, Integer.parseInt(addAddedYear.getText()));
+				prepInventoryExpenses.setInt(4, Integer.parseInt(addInputText.getText()));
+				prepInventoryExpenses.setInt(5, 0);
+				
+				if(!checkDate(monthToInt(addAddedMonths.getSelectedItem().toString()),Integer.parseInt(addAddedDays.getSelectedItem().toString()),Integer.parseInt(addAddedYear.getText())))
+						{
+							JOptionPane.showMessageDialog(null, "Input Date/s not Valid.", "Date Error", JOptionPane.ERROR_MESSAGE);
+						}
+						else if(!validateDate(monthToInt(addAddedMonths.getSelectedItem().toString()),Integer.parseInt(addAddedDays.getSelectedItem().toString()),Integer.parseInt(addAddedYear.getText())))
+						{
+							JOptionPane.showMessageDialog(null, "Cannot add after present date.", "Date Error", JOptionPane.ERROR_MESSAGE);
+						}
+						else if (JOptionPane.showConfirmDialog(null, "Are you sure you want to add this entry?","Confirmation", JOptionPane.YES_NO_OPTION)  == 0){
+					prepInventoryExpenses.addBatch();
+					sqlconn.setAutoCommit(false);
+					prepInventoryExpenses.executeBatch();
+					sqlconn.setAutoCommit(true);
+				}	
 			}
 		} catch (SQLException e) {
-			JOptionPane.showMessageDialog(null, e.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
+			JOptionPane.showMessageDialog(null, e.getMessage() + "\n the record already exists", "Database Error", JOptionPane.ERROR_MESSAGE);
 		} catch (NumberFormatException e) {
 			JOptionPane.showMessageDialog(null, "Re-check the required inputs", "Input Error", JOptionPane.ERROR_MESSAGE);
 		} catch (Exception e) {
-			e.printStackTrace();
+			//e.printStackTrace();
 		}
     }
+
+    JLabel picLabel;
+	JFreeChart chart = null;
+	BufferedImage bi = null;
+	/**
+	 * creates a bar chart using vectors that contain the data per specific month and year
+	 */
+	private void createBarChart(Vector<Double> data, String name, Vector<Integer> startMon, int monthNum, Vector<Integer> startYr){
+		
+		String[] mon = {"Dec ", "Jan ", "Feb ", "March ", "April ", "May ", "June ", "July ", "Aug ", "Sept ", "Oct ", "Nov "};
+			
+		if(bi!=null){
+			summaryPanel.remove(picLabel);
+		}
+	
+		DefaultCategoryDataset dataset = new DefaultCategoryDataset();
+		for(int i=0; i<data.size(); i++){
+			
+			dataset.setValue(data.elementAt(i), "Pesos", mon[startMon.firstElement()%12]+startYr.firstElement()+"");		
+			//startMon++;
+			startMon.removeElementAt(0);
+			startYr.removeElementAt(0);
+			// System.out.println(data.elementAt(i));
+		}
+		
+		chart = ChartFactory.createBarChart3D(name,"Months", "Pesos", dataset, PlotOrientation.VERTICAL, false, true, false);
+		
+		CategoryPlot categoryPlot = chart.getCategoryPlot();
+		BarRenderer br = (BarRenderer) categoryPlot.getRenderer();
+		br.setMaximumBarWidth(.20); // set maximum width to 35% of chart
+		
+		bi = chart.createBufferedImage(500,400);
+		picLabel = new JLabel(new ImageIcon( bi ));
+		
+		picLabel.setBounds(50, 50, 500, 400);
+		summaryPanel.add(picLabel);
+		repaint();
+		validate();
+	
+	}
+	
+	/**
+	 * creates a pie chart and show it in the show summary panel
+	 */
+	private void createPieChart(Vector<Double> total, Vector<Double> inv, Vector<Double> misc, Vector<Double> salaries,String name){
+		
+		if(bi!=null){
+			summaryPanel.remove(picLabel);
+		}
+		
+		DefaultPieDataset pieDataset = new DefaultPieDataset();
+		
+		double addTotal = 0;
+		double addInv = 0;
+		double addMisc = 0;
+		double addSalaries = 0;
+		
+		for(int i=0; i<total.size(); i++){
+			addTotal = addTotal+total.elementAt(i);
+		}
+		for(int i=0; i<inv.size(); i++){
+			addInv = addInv+inv.elementAt(i);
+		}
+		for(int i=0; i<misc.size(); i++){
+			addMisc = addMisc+misc.elementAt(i);
+		}
+		for(int i=0; i<salaries.size(); i++){
+			addSalaries = addSalaries+salaries.elementAt(i);
+		}
+				
+		for(int i=0; i<total.size(); i++){
+			pieDataset.setValue("Inventory", new Double(addInv/addTotal));
+			pieDataset.setValue("Miscellaneous", new Double(addMisc/addTotal));
+			pieDataset.setValue("Salaries", new Double(addSalaries/addTotal));
+		}
+		
+		chart = ChartFactory.createPieChart3D(name, pieDataset,true, true, false);
+		
+		
+		bi = chart.createBufferedImage(500,400);
+		picLabel = new JLabel(new ImageIcon( bi ));
+		
+		picLabel.setBounds(50, 50, 500, 400);
+		summaryPanel.add(picLabel);
+		repaint();
+		validate();
+	}
+
+    /**
+     * show summary
+     */ 
+	int startMonthInt = 0;
+	int numberofMonths = 0;
+	int startYearInt  = 0;
+	private void summaryActionPerformed(ActionEvent evt){
+    	
+		try {
+			String startMonth = summaryStartMonths.getSelectedItem().toString();
+			startMonthInt = monthToInt(startMonth);
+			String startYear = summaryStartYear.getText();
+			startYearInt = Integer.parseInt(startYear);
+			String endMonth = summaryEndMonths.getSelectedItem().toString();
+			int endMonthInt = monthToInt(endMonth);
+			String endYear = summaryEndYear.getText();
+			int endYearInt = Integer.parseInt(endYear);
+			
+			int numberofYears = endYearInt - startYearInt;
+			numberofMonths = ((endMonthInt - startMonthInt) + 1) + (12 * numberofYears);
+			
+			Vector<Double> totalIncome = new Vector<Double>();
+			Vector<Double> finisherIncome = new Vector<Double>();
+			Vector<Double> butcheredIncome = new Vector<Double>();
+			Vector<Double> salaryExpenses = new Vector<Double>();
+			Vector<Double> itemExpenses = new Vector<Double>();
+			Vector<Double> micellaneousExpenses = new Vector<Double>();
+			Vector<Double> totalExpenses = new Vector<Double>();
+			Vector<Double> netIncome = new Vector<Double>();
+			
+			if(!checkDate(startMonthInt,1,startYearInt) || !checkDate(endMonthInt,1,endYearInt)){
+				JOptionPane.showMessageDialog(null, "Input Date/s not Valid.", "Date Error", JOptionPane.ERROR_MESSAGE);
+			}
+			else if(!validateDate(startMonthInt,1,startYearInt) || !validateDate(endMonthInt,1,endYearInt)){
+				JOptionPane.showMessageDialog(null, "Cannot add date after current date.", "Date Error", JOptionPane.ERROR_MESSAGE);
+			}
+			else if (dateOrderCheck(new java.util.Date(startYearInt-1900 ,startMonthInt-1,1),
+									new java.util.Date(endYearInt-1900,endMonthInt-1,1))){
+				JOptionPane.showMessageDialog(null, "End Date must be after Start Date", "Date Error", JOptionPane.ERROR_MESSAGE);
+			}
+			else{
+				if(summaryOption.getSelectedIndex() != 0)
+				{
+					exportButton1.setVisible(true);
+				}
+				else
+				{
+					exportButton1.setVisible(false);
+					if(bi!=null){
+						summaryPanel.remove(picLabel);
+					}
+					repaint();
+					validate();
+				}
+				
+				if(summaryOption.getSelectedItem().toString().equalsIgnoreCase("Total Expenses(Bar)")){
+					sqlrs = sqlstat.executeQuery("SELECT S.to_month, SUM(S.amount) AS amount, S.to_year FROM salaries S WHERE S.to_year BETWEEN " + startYearInt + " AND " + endYearInt + " GROUP BY S.to_year, S.to_month;"); 
+					
+					Vector<Integer> smonths = new Vector<Integer>();
+					Vector<Integer> syears = new Vector<Integer>();
+					while (sqlrs.next()) {
+						smonths.addElement(sqlrs.getInt("to_month"));
+						salaryExpenses.addElement(sqlrs.getDouble("amount"));
+						syears.addElement(sqlrs.getInt("to_year"));
+					}    	
+					
+					sqlrs.close();
+					
+					sqlrs = sqlstat.executeQuery("SELECT I.month, SUM(I.total_amount) AS amount, I.year FROM inventoryexpenses I WHERE I.year BETWEEN "+ startYearInt + " AND "+ endYearInt + " GROUP BY I.year, I.month;");
+					
+					Vector<Integer> imonths = new Vector<Integer>();
+					Vector<Integer> iyears = new Vector<Integer>();
+					while (sqlrs.next()) {
+						imonths.addElement(sqlrs.getInt("month"));
+						itemExpenses.addElement(sqlrs.getDouble("amount"));
+						iyears.addElement(sqlrs.getInt("year"));
+					}    	
+					sqlrs.close();		
+					
+					sqlrs = sqlstat.executeQuery("SELECT M.month, SUM(M.amount) AS amount, M.year FROM micellaneousexpenses M WHERE M.year BETWEEN "+ startYearInt +" AND "+ endYearInt + " GROUP BY M.year, M.month;");
+					
+					
+					Vector<Integer> mmonths = new Vector<Integer>();
+					Vector<Integer> myears = new Vector<Integer>();
+					while (sqlrs.next()) {
+						mmonths.addElement(sqlrs.getInt("month"));
+						micellaneousExpenses.addElement(sqlrs.getDouble("amount"));
+						myears.addElement(sqlrs.getInt("year"));
+					}    	
+					sqlrs.close();
+					
+					Vector<Integer> months = new Vector<Integer>();
+					Vector<Integer> years = new Vector<Integer>();
+					int monthctr = startMonthInt;
+					int yearctr = startYearInt;
+					double total = 0;
+					while (yearctr <= endYearInt) {
+						total = 0;
+						months.addElement(monthctr);
+						years.addElement(yearctr);
+						
+						if (!smonths.isEmpty()) {
+							if (smonths.firstElement() == monthctr && syears.firstElement() == yearctr) {
+								total = total + salaryExpenses.elementAt(0);
+								smonths.removeElementAt(0);
+								syears.removeElementAt(0);
+								salaryExpenses.removeElementAt(0);
+							}
+						}
+						if (!imonths.isEmpty()) {
+							if (imonths.firstElement() == monthctr && iyears.firstElement() == yearctr) {
+								total = total + itemExpenses.elementAt(0);
+								imonths.removeElementAt(0);
+								iyears.removeElementAt(0);
+								itemExpenses.removeElementAt(0);
+							}
+						}
+						if (!mmonths.isEmpty()) {
+							if (mmonths.firstElement() == monthctr && myears.firstElement() == yearctr) {
+								total = total + micellaneousExpenses.elementAt(0);
+								mmonths.removeElementAt(0);
+								myears.removeElementAt(0);
+								micellaneousExpenses.removeElementAt(0);
+							}
+						}
+								
+						totalExpenses.addElement(total);
+						if (monthctr == 12) {
+							monthctr = 1;
+							yearctr++;
+						} else {
+							monthctr++;
+							if ((monthctr+1) > (endMonthInt+1) && yearctr == endYearInt) {
+								yearctr++;
+							}
+						}
+						
+					}
+					
+					createBarChart(totalExpenses, "Total Expenses (Bar)", months, numberofMonths, years);
+					
+					
+				}
+				else if(summaryOption.getSelectedItem().toString().equalsIgnoreCase("Total Expenses(Pie)")){
+					sqlrs = sqlstat.executeQuery("SELECT S.to_month, SUM(S.amount) AS amount, S.to_year FROM salaries S WHERE S.to_year BETWEEN " + startYearInt + " AND " + endYearInt + " GROUP BY S.to_year, S.to_month;"); 
+					
+					Vector<Integer> smonths = new Vector<Integer>();
+					Vector<Integer> syears = new Vector<Integer>();
+					while (sqlrs.next()) {
+						smonths.addElement(sqlrs.getInt("to_month"));
+						salaryExpenses.addElement(sqlrs.getDouble("amount"));
+						syears.addElement(sqlrs.getInt("to_year"));
+					}    	
+					
+					sqlrs.close();
+					
+					sqlrs = sqlstat.executeQuery("SELECT I.month, SUM(I.total_amount) AS amount, I.year FROM inventoryexpenses I WHERE I.year BETWEEN "+ startYearInt + " AND "+ endYearInt + " GROUP BY I.year, I.month;");
+					
+					Vector<Integer> imonths = new Vector<Integer>();
+					Vector<Integer> iyears = new Vector<Integer>();
+					while (sqlrs.next()) {
+						imonths.addElement(sqlrs.getInt("month"));
+						itemExpenses.addElement(sqlrs.getDouble("amount"));
+						iyears.addElement(sqlrs.getInt("year"));
+					}    	
+					sqlrs.close();		
+					
+					sqlrs = sqlstat.executeQuery("SELECT M.month, SUM(M.amount) AS amount, M.year FROM micellaneousexpenses M WHERE M.year BETWEEN "+ startYearInt +" AND "+ endYearInt + " GROUP BY M.year, M.month;");
+					
+					
+					Vector<Integer> mmonths = new Vector<Integer>();
+					Vector<Integer> myears = new Vector<Integer>();
+					while (sqlrs.next()) {
+						mmonths.addElement(sqlrs.getInt("month"));
+						micellaneousExpenses.addElement(sqlrs.getDouble("amount"));
+						myears.addElement(sqlrs.getInt("year"));
+					}    	
+					sqlrs.close();
+					
+					Vector<Integer> months = new Vector<Integer>();
+					Vector<Integer> years = new Vector<Integer>();
+					int monthctr = startMonthInt;
+					int yearctr = startYearInt;
+					double total = 0;
+					while (yearctr <= endYearInt) {
+						total = 0;
+						months.addElement(monthctr);
+						years.addElement(yearctr);
+						
+						if (!smonths.isEmpty()) {
+							if (smonths.firstElement() == monthctr && syears.firstElement() == yearctr) {
+								total = total + salaryExpenses.elementAt(0);
+								smonths.removeElementAt(0);
+								syears.removeElementAt(0);
+								salaryExpenses.removeElementAt(0);
+							}
+						}
+						if (!imonths.isEmpty()) {
+							if (imonths.firstElement() == monthctr && iyears.firstElement() == yearctr) {
+								total = total + itemExpenses.elementAt(0);
+								imonths.removeElementAt(0);
+								iyears.removeElementAt(0);
+								itemExpenses.removeElementAt(0);
+							}
+						}
+						if (!mmonths.isEmpty()) {
+							if (mmonths.firstElement() == monthctr && myears.firstElement() == yearctr) {
+								total = total + micellaneousExpenses.elementAt(0);
+								mmonths.removeElementAt(0);
+								myears.removeElementAt(0);
+								micellaneousExpenses.removeElementAt(0);
+							}
+						}
+								
+						totalExpenses.addElement(total);
+						if (monthctr == 12) {
+							monthctr = 1;
+							yearctr++;
+						} else {
+							monthctr++;
+							if ((monthctr+1) > (endMonthInt+1) && yearctr == endYearInt) {
+								yearctr++;
+							}
+						}
+						
+					}
+					
+					sqlrs = sqlstat.executeQuery("SELECT S.to_month, SUM(S.amount) AS amount, S.to_year FROM salaries S WHERE S.to_year BETWEEN " + startYearInt + " AND " + endYearInt + " GROUP BY S.to_year, S.to_month;"); 
+					
+					smonths = new Vector<Integer>();
+					syears = new Vector<Integer>();
+					while (sqlrs.next()) {
+						smonths.addElement(sqlrs.getInt("to_month"));
+						salaryExpenses.addElement(sqlrs.getDouble("amount"));
+						syears.addElement(sqlrs.getInt("to_year"));
+					}    	
+					
+					sqlrs.close();
+					
+					sqlrs = sqlstat.executeQuery("SELECT I.month, SUM(I.total_amount) AS amount, I.year FROM inventoryexpenses I WHERE I.year BETWEEN "+ startYearInt + " AND "+ endYearInt + " GROUP BY I.year, I.month;");
+					
+					imonths = new Vector<Integer>();
+					iyears = new Vector<Integer>();
+					while (sqlrs.next()) {
+						imonths.addElement(sqlrs.getInt("month"));
+						itemExpenses.addElement(sqlrs.getDouble("amount"));
+						iyears.addElement(sqlrs.getInt("year"));
+					}    	
+					sqlrs.close();		
+					
+					sqlrs = sqlstat.executeQuery("SELECT M.month, SUM(M.amount) AS amount, M.year FROM micellaneousexpenses M WHERE M.year BETWEEN "+ startYearInt +" AND "+ endYearInt + " GROUP BY M.year, M.month;");
+					
+					
+					mmonths = new Vector<Integer>();
+					myears = new Vector<Integer>();
+					while (sqlrs.next()) {
+						mmonths.addElement(sqlrs.getInt("month"));
+						micellaneousExpenses.addElement(sqlrs.getDouble("amount"));
+						myears.addElement(sqlrs.getInt("year"));
+					}    	
+					sqlrs.close();
+					
+					createPieChart(totalExpenses, itemExpenses, micellaneousExpenses, salaryExpenses, "Total Expenses (Pie)");
+				
+				}
+				else if(summaryOption.getSelectedItem().toString().equalsIgnoreCase("Salaries Expense")){
+				
+					sqlrs = sqlstat.executeQuery("SELECT S.to_month, SUM(S.amount) AS amount, S.to_year FROM salaries S WHERE S.to_year BETWEEN " + startYearInt + " AND " + endYearInt + " GROUP BY S.to_year, S.to_month;"); 
+					
+					Vector<Integer> months = new Vector<Integer>();
+					Vector<Integer> years = new Vector<Integer>();
+					while (sqlrs.next()) {
+						months.addElement(sqlrs.getInt("to_month"));
+						salaryExpenses.addElement(sqlrs.getDouble("amount"));
+						years.addElement(sqlrs.getInt("to_year"));
+					}    	
+					
+					sqlrs.close();
+					
+					createBarChart(salaryExpenses, "Salary Expenses", months, numberofMonths, years);
+				}
+				else if(summaryOption.getSelectedItem().toString().equalsIgnoreCase("Inventory Expenses")){
+					sqlrs = sqlstat.executeQuery("SELECT I.month, SUM(I.total_amount) AS amount, I.year FROM inventoryexpenses I WHERE I.year BETWEEN "+ startYearInt + " AND "+ endYearInt + " GROUP BY I.year, I.month;");
+					
+					Vector<Integer> months = new Vector<Integer>();
+					Vector<Integer> years = new Vector<Integer>();
+					while (sqlrs.next()) {
+						months.addElement(sqlrs.getInt("month"));
+						itemExpenses.addElement(sqlrs.getDouble("amount"));
+						years.addElement(sqlrs.getInt("year"));
+					}    	
+					sqlrs.close();
+					
+					createBarChart(itemExpenses, "Inventory Expenses", months, numberofMonths, years);
+				}
+				else if(summaryOption.getSelectedItem().toString().equalsIgnoreCase("Misc. Expense")){
+					sqlrs = sqlstat.executeQuery("SELECT M.month, SUM(M.amount) AS amount, M.year FROM micellaneousexpenses M WHERE M.year BETWEEN "+ startYearInt +" AND "+ endYearInt + " GROUP BY M.year, M.month;");
+					
+					
+					Vector<Integer> months = new Vector<Integer>();
+					Vector<Integer> years = new Vector<Integer>();
+					while (sqlrs.next()) {
+						months.addElement(sqlrs.getInt("month"));
+						micellaneousExpenses.addElement(sqlrs.getDouble("amount"));
+						years.addElement(sqlrs.getInt("year"));
+					}    	
+					sqlrs.close();
+					
+					createBarChart(micellaneousExpenses, "Miscellaneous Expenses", months, numberofMonths, years);
+				}
+				else if(summaryOption.getSelectedItem().toString().equalsIgnoreCase("Total Sales")){
+					sqlrs = sqlstat.executeQuery("SELECT P.sold_month, SUM(P.amount) AS amount, P.sold_year FROM soldpigs P WHERE P.sold_year BETWEEN "+ startYearInt +" AND "+ endYearInt 
+						+" GROUP BY P.sold_year, P.sold_month;");
+					
+					Vector<Integer> months = new Vector<Integer>();
+					Vector<Integer> years = new Vector<Integer>();
+					while (sqlrs.next()) {
+						months.addElement(sqlrs.getInt("sold_month"));
+						totalIncome.addElement(sqlrs.getDouble("amount"));
+						years.addElement(sqlrs.getInt("sold_year"));
+					}    	
+					sqlrs.close();
+					
+					createBarChart(totalIncome, "Total Sales", months, numberofMonths, years);
+				}
+				else if(summaryOption.getSelectedItem().toString().equalsIgnoreCase("Finisher Sales")){
+					sqlrs = sqlstat.executeQuery("SELECT P.sold_month, SUM(P.amount) AS amount, P.sold_year FROM soldpigs P WHERE P.sold_year BETWEEN "+ startYearInt +" AND "+ endYearInt +" AND P.selling_id = 1 GROUP BY P.sold_year, P.sold_month;");
+					
+					Vector<Integer> months = new Vector<Integer>();
+					Vector<Integer> years = new Vector<Integer>();
+					while (sqlrs.next()) {
+						months.addElement(sqlrs.getInt("sold_month"));
+						finisherIncome.addElement(sqlrs.getDouble("amount"));
+						years.addElement(sqlrs.getInt("sold_year"));
+					}    	
+					sqlrs.close();
+					
+					createBarChart(finisherIncome, "Finisher Sales", months, numberofMonths, years);
+				}
+				else if(summaryOption.getSelectedItem().toString().equalsIgnoreCase("Butchered Sales")){
+					sqlrs = sqlstat.executeQuery("SELECT P.sold_month, SUM(P.amount) AS amount, P.sold_year FROM soldpigs P WHERE P.sold_year BETWEEN "+ startYearInt +" AND "+ endYearInt +" AND P.selling_id = 2 GROUP BY P.sold_year, P.sold_month;");
+					
+					Vector<Integer> months = new Vector<Integer>();
+					Vector<Integer> years = new Vector<Integer>();
+					while (sqlrs.next()) {
+						months.addElement(sqlrs.getInt("sold_month"));
+						butcheredIncome.addElement(sqlrs.getDouble("amount"));
+						years.addElement(sqlrs.getInt("sold_year"));
+					}    	
+					sqlrs.close();
+					
+					createBarChart(butcheredIncome, "Butchered Sales", months, numberofMonths, years);
+				}
+				else if(summaryOption.getSelectedItem().toString().equalsIgnoreCase("Net Income")){
+					sqlrs = sqlstat.executeQuery("SELECT P.sold_month, SUM(P.amount) AS amount, P.sold_year FROM soldpigs P WHERE P.sold_year BETWEEN "+ startYearInt +" AND "+ endYearInt 
+							+" GROUP BY P.sold_year, P.sold_month;");
+						
+					Vector<Integer> incomemonths = new Vector<Integer>();
+					Vector<Integer> incomeyears = new Vector<Integer>();
+					while (sqlrs.next()) {
+						incomemonths.addElement(sqlrs.getInt("sold_month"));
+						totalIncome.addElement(sqlrs.getDouble("amount"));
+						incomeyears.addElement(sqlrs.getInt("sold_year"));
+					}    	
+					sqlrs.close();
+					
+					sqlrs = sqlstat.executeQuery("SELECT S.to_month, SUM(S.amount) AS amount, S.to_year FROM salaries S WHERE S.to_year BETWEEN " + startYearInt + " AND " + endYearInt + " GROUP BY S.to_year, S.to_month;"); 
+					
+					Vector<Integer> smonths = new Vector<Integer>();
+					Vector<Integer> syears = new Vector<Integer>();
+					while (sqlrs.next()) {
+						smonths.addElement(sqlrs.getInt("to_month"));
+						salaryExpenses.addElement(sqlrs.getDouble("amount"));
+						syears.addElement(sqlrs.getInt("to_year"));
+					}    	
+					
+					sqlrs.close();
+					
+					sqlrs = sqlstat.executeQuery("SELECT I.month, SUM(I.total_amount) AS amount, I.year FROM inventoryexpenses I WHERE I.year BETWEEN "+ startYearInt + " AND "+ endYearInt + " GROUP BY I.year, I.month;");
+					
+					Vector<Integer> imonths = new Vector<Integer>();
+					Vector<Integer> iyears = new Vector<Integer>();
+					while (sqlrs.next()) {
+						imonths.addElement(sqlrs.getInt("month"));
+						itemExpenses.addElement(sqlrs.getDouble("amount"));
+						iyears.addElement(sqlrs.getInt("year"));
+					}    	
+					sqlrs.close();		
+					
+					sqlrs = sqlstat.executeQuery("SELECT M.month, SUM(M.amount) AS amount, M.year FROM micellaneousexpenses M WHERE M.year BETWEEN "+ startYearInt +" AND "+ endYearInt + " GROUP BY M.year, M.month;");
+					
+					
+					Vector<Integer> mmonths = new Vector<Integer>();
+					Vector<Integer> myears = new Vector<Integer>();
+					while (sqlrs.next()) {
+						mmonths.addElement(sqlrs.getInt("month"));
+						micellaneousExpenses.addElement(sqlrs.getDouble("amount"));
+						myears.addElement(sqlrs.getInt("year"));
+					}    	
+					sqlrs.close();
+					
+					Vector<Integer> months = new Vector<Integer>();
+					Vector<Integer> years = new Vector<Integer>();
+					int monthctr = startMonthInt;
+					int yearctr = startYearInt;
+					double total = 0;
+					while (yearctr <= endYearInt) {
+						total = 0;
+						months.addElement(monthctr);
+						years.addElement(yearctr);
+						
+						if (!smonths.isEmpty()) {
+							if (smonths.firstElement() == monthctr && syears.firstElement() == yearctr) {
+								total = total - salaryExpenses.elementAt(0);
+								smonths.removeElementAt(0);
+								syears.removeElementAt(0);
+								salaryExpenses.removeElementAt(0);
+							}
+						}
+						if (!imonths.isEmpty()) {
+							if (imonths.firstElement() == monthctr && iyears.firstElement() == yearctr) {
+								total = total - itemExpenses.elementAt(0);
+								imonths.removeElementAt(0);
+								iyears.removeElementAt(0);
+								itemExpenses.removeElementAt(0);
+							}
+						}
+						if (!mmonths.isEmpty()) {
+							if (mmonths.firstElement() == monthctr && myears.firstElement() == yearctr) {
+								total = total - micellaneousExpenses.elementAt(0);
+								mmonths.removeElementAt(0);
+								myears.removeElementAt(0);
+								micellaneousExpenses.removeElementAt(0);
+							}
+						}
+						if (!incomemonths.isEmpty()) {
+							if (incomemonths.firstElement() == monthctr && incomeyears.firstElement() == yearctr) {
+								total = total + totalIncome.elementAt(0);
+								incomemonths.removeElementAt(0);
+								incomeyears.removeElementAt(0);
+								totalIncome.removeElementAt(0);
+							}
+						}
+								
+						totalExpenses.addElement(total);
+						if (monthctr == 12) {
+							monthctr = 1;
+							yearctr++;
+						} else {
+							monthctr++;
+							if ((monthctr+1) > (endMonthInt+1) && yearctr == endYearInt) {
+								yearctr++;
+							}
+						}
+						
+					}
+					
+					
+					createBarChart(totalExpenses, "Net Income", months, numberofMonths, years);
+				
+				}
+			}
+			
+	
+		} catch (SQLException e) {
+			JOptionPane.showMessageDialog(null, e.getMessage() + "\n the record already exists", "Database Error", JOptionPane.ERROR_MESSAGE);
+		} catch (NumberFormatException e) {
+			JOptionPane.showMessageDialog(null, "Re-check the required inputs", "Input Error", JOptionPane.ERROR_MESSAGE);
+		} catch (Exception e) {
+			//e.printStackTrace();
+		}
+	}
     
     //Clear buttons
     /**
@@ -3051,6 +5462,7 @@ public class Home extends JFrame implements ActionListener{
     private void farrowingClearActionPerformed(ActionEvent evt) {
         farrowingDateText.setText("");
         farrowingSowText.setText("");
+        farrowingBoarText.setText("");
         farrowingLiveText.setText("");
         farrowingEarText.setText("");
         farrowingStillText.setText("");
@@ -3137,190 +5549,7 @@ public class Home extends JFrame implements ActionListener{
 	    	Class.forName("org.sqlite.JDBC");
 	    	sqlconn = DriverManager.getConnection("jdbc:sqlite:fd.db");
 			sqlstat = sqlconn.createStatement();
-			
-			//SQL statements
-			//testing part
-			sqlstat.executeUpdate("drop table if exists breeding;");
-			sqlstat.executeUpdate("drop table if exists buyers;");
-			sqlstat.executeUpdate("drop table if exists employees;");
-			sqlstat.executeUpdate("drop table if exists farrowing;");
-			sqlstat.executeUpdate("drop table if exists inventoryexpensedetails;");
-			sqlstat.executeUpdate("drop table if exists inventoryexpenses;");
-			sqlstat.executeUpdate("drop table if exists items;");
-			sqlstat.executeUpdate("drop table if exists micellaneousexpenses;");
-			sqlstat.executeUpdate("drop table if exists pigs;");
-			sqlstat.executeUpdate("drop table if exists pigtypes;");
-			sqlstat.executeUpdate("drop table if exists salaries;");
-			sqlstat.executeUpdate("drop table if exists sellingtypes;");
-			sqlstat.executeUpdate("drop table if exists soldalivedetails;");
-			sqlstat.executeUpdate("drop table if exists soldbutchereddetails;");
-			sqlstat.executeUpdate("drop table if exists soldpigs;");
-			
-			//create tables		
-			sqlstat.executeUpdate("CREATE TABLE \"breeding\" ( " +
-										"\"boar_no\" INTEGER NOT NULL, " +
-										"\"sow_no\" INTEGER  NOT NULL, " +
-										"\"breeding_month\" INTEGER  NOT NULL, " +
-										"\"breeding_day\" INTEGER NOT NULL, " +
-										"\"breeding_year\" INTEGER NOT NULL, " +
-										"\"parity\" INTEGER, " +
-										"\"farrowing_month\" INTEGER, " +
-										"\"farrowing_day\" INTEGER, " +
-										"\"farrowing_year\" INTEGER, " +
-										"\"remarks\" TEXT, " +
-										"PRIMARY KEY(\"boar_no\", \"sow_no\",  \"breeding_month\", \"breeding_day\", \"breeding_year\"), " +
-										"FOREIGN KEY(\"boar_no\") REFERENCES pigs(\"ear_no\"), " +
-										"FOREIGN KEY(\"sow_no\") REFERENCES pigs(\"ear_no\") " +
-									")");
-			sqlstat.executeUpdate("CREATE TABLE \"buyers\" ( " +
-										"\"buyer_id\" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
-										"\"last_name\" TEXT NOT NULL, " +
-										"\"first_name\" TEXT NOT NULL, " +
-										"UNIQUE(\"last_name\", \"first_name\") " +
-									")");
-			sqlstat.executeUpdate("CREATE TABLE \"employees\" ( " +
-										"\"employee_id\" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
-										"\"last_name\" TEXT NOT NULL, " +
-										"\"first_name\" TEXT NOT NULL, " +
-										"UNIQUE(\"last_name\", \"first_name\") " +
-									")");
-			sqlstat.executeUpdate("CREATE TABLE \"farrowing\" ( " +
-										"\"sow_no\" INTEGER NOT NULL, " +
-										"\"farrowing_month\" INTEGER NOT NULL, " +
-										"\"farrowing_day\" INTEGER NOT NULL, " +
-										"\"farrowing_year\" INTEGER NOT NULL, " +
-										"\"ear_nos_assigned_start\" INTEGER NOT NULL, " +
-										"\"ear_nos_assigned_end\" INTEGER NOT NULL, " +
-										"\"live_born_no\" INTEGER NOT NULL DEFAULT (0), " +
-										"\"still_born_no\" INTEGER NOT NULL DEFAULT (0), " +
-										"\"mummified_no\" INTEGER NOT NULL DEFAULT (0), " +
-										"\"abnormal_no\" INTEGER NOT NULL DEFAULT (0), " +
-										"\"remarks\" TEXT, " +
-										"PRIMARY KEY(\"sow_no\", \"farrowing_month\", \"farrowing_day\", \"farrowing_year\"), " +
-										"FOREIGN KEY(\"sow_no\") REFERENCES pigs(\"ear_no\") " +
-									")");
-			sqlstat.executeUpdate("CREATE TABLE \"inventoryexpensedetails\" ( " +
-										"\"delivery_receipt_no\" INTEGER NOT NULL, " +
-										"\"item_id\" INTEGER NOT NULL, " +
-										"\"quantity\" INTEGER NOT NULL, " +
-										"\"amount\" REAL NOT NULL, " +
-										"PRIMARY KEY(\"delivery_receipt_no\", \"item_id\"), " +
-										"FOREIGN KEY(\"delivery_receipt_no\") REFERENCES inventoryexpenses(\"delivery_receipt_no\"), " +
-										"FOREIGN KEY(\"item_id\") REFERENCES items(\"item_id\") " +
-									")");
-			sqlstat.executeUpdate("CREATE TABLE \"inventoryexpenses\" ( " +
-										"\"month\" INTEGER NOT NULL, " +
-										"\"day\" INTEGER NOT NULL, " +
-										"\"year\" INTEGER NOT NULL, " +
-										"\"delivery_receipt_no\" INTEGER PRIMARY KEY NOT NULL, " +
-										"\"total_amount\" REAL NOT NULL " +
-									")");
-			sqlstat.executeUpdate("CREATE TABLE \"items\" ( " +
-										"\"item_id\" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
-										"\"item\" TEXT NOT NULL, " +
-										"UNIQUE(\"item\") " +
-									")");
-			sqlstat.executeUpdate("CREATE TABLE \"micellaneousexpenses\" ( " +
-										"\"month\" INTEGER NOT NULL, " +
-										"\"day\" INTEGER NOT NULL, " +
-										"\"year\" INTEGER NOT NULL, " +
-										"\"item_id\" INTEGER NOT NULL, " +
-										"\"amount\" REAL NOT NULL, " +
-										"\"notes\" TEXT, " +
-										"PRIMARY KEY(\"item_id\", \"month\", \"day\", \"year\"), " +
-										"FOREIGN KEY(\"item_id\") REFERENCES itemes(\"item_id\") " +
-									")");
-			sqlstat.executeUpdate("CREATE TABLE \"pigs\" ( " +
-									    "\"ear_no\" INTEGER PRIMARY KEY NOT NULL, " +
-									    "\"pig_id\" INTEGER NOT NULL, " +
-									    "\"month_added\" INTEGER NOT NULL, " +
-									    "\"day_added\" INTEGER NOT NULL, " +
-									    "\"year_added\" INTEGER NOT NULL, " +
-									    "\"building_no\" INTEGER DEFAULT (0), " +
-									    "\"employee_id\" INTEGER DEFAULT (0), " +
-									    "\"month_died\" INTEGER DEFAULT (0), " +
-									    "\"day_died\" INTEGER DEFAULT (0), " +
-									    "\"year_died\" INTEGER DEFAULT (0), " +
-									    "\"cause_of_death_remarks\" TEXT " +
-									")");
-			sqlstat.executeUpdate("CREATE TABLE \"pigtypes\" ( " +
-										"\"pig_id\" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
-										"\"pig_type\" TEXT NOT NULL, " +
-										"UNIQUE(\"pig_type\") " +
-									")");
-			sqlstat.executeUpdate("CREATE TABLE \"salaries\" ( " +
-										"\"employee_id\" INTEGER NOT NULL, " +
-										"\"amount\" REAL NOT NULL, " +
-										"\"from_month\" INTEGER NOT NULL, " +
-										"\"from_day\" INTEGER NOT NULL, " +
-										"\"from_year\" INTEGER NOT NULL, " +
-										"\"to_month\" INTEGER NOT NULL, " +
-										"\"to_day\" INTEGER NOT NULL, " +
-										"\"to_year\" INTEGER NOT NULL, " +
-										"PRIMARY KEY(\"employee_id\", \"from_month\", \"from_day\", \"from_year\", \"to_month\", \"to_day\", \"to_year\"), " +
-										"FOREIGN KEY(\"employee_id\") REFERENCES employees(\"employee_id\") " +
-									")");
-			sqlstat.executeUpdate("CREATE TABLE \"sellingtypes\" ( " +
-										"\"selling_id\" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
-										"\"selling_type\" TEXT NOT NULL, " +
-										"UNIQUE(\"selling_type\") " +
-									")");
-			sqlstat.executeUpdate("CREATE TABLE \"soldalivedetails\" ( " +
-										"\"buyer_id\" INTEGER NOT NULL, " +
-										"\"sold_month\" INTEGER NOT NULL, " +
-										"\"sold_day\" INTEGER NOT NULL, " +
-										"\"sold_year\" INTEGER NOT NULL, " +
-										"\"no_of_heads\" INTEGER NOT NULL, " +
-										"\"kilos_less\" INTEGER NOT NULL DEFAULT (0), " +
-										"\"ear_nos_sold\" TEXT, " +
-										"PRIMARY KEY(\"buyer_id\", \"sold_month\", \"sold_day\", \"sold_year\", \"ear_nos_sold\"), " +
-										"FOREIGN KEY(\"buyer_id\") REFERENCES buyers(\"buyer_id\") " +
-									")");
-			sqlstat.executeUpdate("CREATE TABLE \"soldbutchereddetails\" ( " +
-										"\"ear_no\" INTEGER PRIMARY KEY NOT NULL, " +
-										"\"butchered_month\" INTEGER NOT NULL, " +
-										"\"butchered_day\" INTEGER NOT NULL, " +
-										"\"butchered_year\" INTEGER NOT NULL, " +
-										"\"weight_sold\" REAL NOT NULL " +
-									")");
-			sqlstat.executeUpdate("CREATE TABLE \"soldpigs\" ( " +
-										"\"buyer_id\" INTEGER NOT NULL, " +
-										"\"selling_id\" INTEGER NOT NULL, " +
-										"\"sold_month\" INTEGER NOT NULL, " +
-										"\"sold_day\" INTEGER NOT NULL, " +
-										"\"sold_year\" INTEGER NOT NULL, " +
-										"\"price_per_kilo\" REAL NOT NULL, " +
-										"\"kilos_total_weight_sold\" REAL NOT NULL, " +
-										"\"amount\" REAL NOT NULL, " +
-										"\"butchered_ear_no\", " +
-										"PRIMARY KEY(\"buyer_id\", \"sold_month\", \"sold_day\", \"sold_year\", \"selling_id\", \"amount\"), " +
-										"FOREIGN KEY(\"buyer_id\") REFERENCES buyers(\"buyer_id\"), " +
-										"FOREIGN KEY(\"selling_id\") REFERENCES sellingtypes(\"selling_id\") " +
-									")");
-			
-			prepPigTypes = sqlconn.prepareStatement("insert into pigtypes values (?, ?);");
-			prepSellingTypes = sqlconn.prepareStatement("insert into sellingtypes values (?, ?);");
-			prepPigTypes.setInt(1, 1);
-			prepPigTypes.setString(2, "boar");
-			prepPigTypes.addBatch();
-			prepPigTypes.setInt(1, 2);
-			prepPigTypes.setString(2, "sow");
-			prepPigTypes.addBatch();
-			prepPigTypes.setInt(1, 3);
-			prepPigTypes.setString(2, "finisher");
-			prepPigTypes.addBatch();
-			prepSellingTypes.setNull(1, Types.INTEGER);
-			prepSellingTypes.setString(2, "sold alive");
-			prepSellingTypes.addBatch();
-			prepSellingTypes.setNull(1, Types.INTEGER);
-			prepSellingTypes.setString(2, "sold butchered");
-			prepSellingTypes.addBatch();
-			sqlconn.setAutoCommit(false);
-			prepPigTypes.executeBatch();
-			prepSellingTypes.executeBatch();
-			sqlconn.setAutoCommit(true);
 					
-			//non-testing part
 			prepBreeding = sqlconn.prepareStatement("insert into breeding values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);");
 			prepBuyers = sqlconn.prepareStatement("insert into buyers values (?, ?, ?);");
 			prepEmployees = sqlconn.prepareStatement("insert into employees values (?, ?, ?);");
@@ -3336,7 +5565,7 @@ public class Home extends JFrame implements ActionListener{
 			prepSoldPigs = sqlconn.prepareStatement("insert into soldpigs values (?, ?, ?, ?, ?, ?, ?, ?, ?);");
 			
     	} catch (Exception e) {
-			e.printStackTrace();
+			//e.printStackTrace();
 		}
 		
     	
@@ -3386,7 +5615,7 @@ public class Home extends JFrame implements ActionListener{
         try {
         	
         } catch (Exception e) {
-        	e.printStackTrace();
+        	//e.printStackTrace();
         }
     }
 }
